@@ -18,7 +18,9 @@ plugins {
 mainClassName = 'edu.gatech.cs2110.circuitsim.tester.TesterLauncher'
 
 dependencies {
-    // This dependency is found on compile classpath of this component and consumers.
+    // Don't need to put gson in here since the CircuitSim jar already
+    // includes it
+    compile ':CircuitSim1.7.2:'
     compile 'org.junit.jupiter:junit-jupiter-api:5.2.0'
     compile 'org.junit.jupiter:junit-jupiter-params:5.2.0'
     compile 'org.junit.jupiter:junit-jupiter-engine:5.2.0'
@@ -30,6 +32,10 @@ repositories {
     // Use jcenter for resolving your dependencies.
     // You can declare any Maven/Ivy/file repository here.
     jcenter()
+
+    flatDir {
+        dirs '.'
+    }
 }
 
 jar {

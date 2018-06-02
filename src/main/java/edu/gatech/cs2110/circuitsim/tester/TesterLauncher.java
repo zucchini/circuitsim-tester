@@ -105,7 +105,7 @@ public class TesterLauncher {
     }
 
     public void printJsonSummary() {
-        out.println("{\"FIX\": \"ME\"}");
+        new ZucchiniJson().printResultsAsJson(results, out);
     }
 
     private boolean wasSuccessful() {

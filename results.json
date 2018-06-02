@@ -1,0 +1,1 @@
+{"tests":[{"fullMethodName":"edu.gatech.cs2110.circuitsim.tests.MathTests.testMathIsFake","passed":false,"message":"expected: \u003c5\u003e but was: \u003c4\u003e"},{"fullMethodName":"edu.gatech.cs2110.circuitsim.tests.MathTests.testMathIsReal","passed":true}]}
