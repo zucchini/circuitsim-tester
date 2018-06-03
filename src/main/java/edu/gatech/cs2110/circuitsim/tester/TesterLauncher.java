@@ -98,7 +98,6 @@ public class TesterLauncher {
             out.println("      use a different tester for grading.");
         } else {
             out.println("Some student tests failed. Showing failed tests:");
-            out.println();
 
             for (TestClassResult classResult : results) {
                 boolean printedSuite = false;
@@ -106,15 +105,13 @@ public class TesterLauncher {
                 for (TestMethodResult methodResult : classResult.getMethodResults()) {
                     if (methodResult.getResult().getStatus() != SUCCESSFUL) {
                         if (!printedSuite) {
-                            out.printf("Test Suite: %s:%n", classResult.getId().getDisplayName());
+                            out.printf("%nTest Suite: %s:%n", classResult.getId().getDisplayName());
                             printedSuite = true;
                         }
                         out.printf("\t[FAIL] %s: %s%n", methodResult.getId().getDisplayName(),
                                    methodResult.getResult().getThrowable().get().getMessage());
                     }
                 }
-
-                out.println();
             }
         }
     }
