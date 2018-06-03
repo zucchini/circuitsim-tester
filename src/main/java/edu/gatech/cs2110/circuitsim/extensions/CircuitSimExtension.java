@@ -4,14 +4,17 @@ import java.io.File;
 
 import com.ra4king.circuitsim.gui.CircuitSim;
 import org.junit.jupiter.api.extension.BeforeAllCallback;
+import org.junit.jupiter.api.extension.BeforeEachCallback;
 import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.jupiter.api.extension.Extension;
 import org.junit.jupiter.api.extension.ParameterContext;
 import org.junit.jupiter.api.extension.ParameterResolver;
 
-public class CircuitSimExtension implements Extension, BeforeAllCallback, ParameterResolver {
+public class CircuitSimExtension implements Extension, BeforeAllCallback, BeforeEachCallback,
+                                            ParameterResolver {
     private CircuitSim circuitSim;
 
+    @Override
     public void beforeAll(ExtensionContext context) throws Exception {
         Class<?> testClass = context.getRequiredTestClass();
         SubcircuitTest subcircuitAnnotation = testClass.getAnnotation(SubcircuitTest.class);
@@ -34,10 +37,19 @@ public class CircuitSimExtension implements Extension, BeforeAllCallback, Parame
         circuitSim.loadCircuits(circuitFile);
     }
 
+    @Override
+    public void beforeEach(ExtensionContext extensionContext) throws Exception {
+        // Reset simulator before each test
+        circuitSim.getSimulator().reset();
+    }
+
+
+    @Override
     public boolean supportsParameter(ParameterContext parameterContext, ExtensionContext extensionContext) {
         return false;
     }
 
+    @Override
     public Object resolveParameter(ParameterContext parameterContext, ExtensionContext extensionContext) {
         return null;
     }
