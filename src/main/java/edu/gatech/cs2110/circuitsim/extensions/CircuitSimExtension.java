@@ -28,9 +28,9 @@ public class CircuitSimExtension implements Extension, BeforeAllCallback, Before
 
         // In theory, zucchini should guarantee this for us, but stuff
         // happens
-        if (circuitFile.canRead()) {
+        if (!circuitFile.canRead()) {
             throw new IllegalArgumentException(
-                String.format("Cannot read circuit file %s", subcircuitAnnotation.file()));
+                String.format("Cannot read circuit file `%s'", subcircuitAnnotation.file()));
         }
 
         circuitSim = new CircuitSim(false);
