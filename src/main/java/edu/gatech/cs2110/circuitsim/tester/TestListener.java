@@ -1,5 +1,6 @@
 package edu.gatech.cs2110.circuitsim.tester;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.LinkedList;
 import java.util.SortedMap;
@@ -46,12 +47,14 @@ public class TestListener implements TestExecutionListener {
     }
 
     // "Lord, thank you for this bountiful harvest" -Trevor Lusk
-    public List<TestClassResult> harvest() {
+    public Collection<TestClassResult> harvest() {
         for (TestMethodResult methodResult : methodResults) {
             classResults.get(methodResult.getSource().getClassName())
                         .addMethodResult(methodResult);
         }
 
-        return new LinkedList<>(classResults.values());
+        methodResults.clear();
+
+        return classResults.values();
     }
 }

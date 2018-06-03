@@ -1,11 +1,14 @@
 package edu.gatech.cs2110.circuitsim.tester;
 
 import static org.junit.platform.engine.TestExecutionResult.Status.SUCCESSFUL;
+import static org.junit.platform.engine.discovery.DiscoverySelectors.selectClass;
 import static org.junit.platform.engine.discovery.DiscoverySelectors.selectPackage;
 
 import java.io.FileNotFoundException;
 import java.io.PrintStream;
 import java.util.List;
+import java.util.SortedSet;
+import java.util.TreeSet;
 
 import org.junit.platform.launcher.Launcher;
 import org.junit.platform.launcher.LauncherDiscoveryRequest;
@@ -15,16 +18,22 @@ import org.junit.platform.launcher.core.LauncherDiscoveryRequestBuilder;
 public class TesterLauncher {
     private static final String TEST_PACKAGE = "edu.gatech.cs2110.circuitsim.tests";
     private String pkg;
-    private List<TestClassResult> results;
+    private SortedSet<TestClassResult> results;
     private PrintStream out, err;
 
     public static void main(String[] args) {
         boolean student = args.length == 0;
-        boolean zucchini = args.length == 2 && args[0].equals("--zucchini");
+        boolean zucchini = args.length >= 2 && args.length <= 3 && args[0].equals("--zucchini");
 
         if (!student && !zucchini) {
-            System.err.println("usage: java -jar tester.jar                                  (run student tests)");
-            System.err.println("       java -jar tester.jar --zucchini path/to/result.json   (create zucchini json)");
+            System.err.println("usage: java -jar tester.jar");
+            System.err.println("           → run student tests");
+            System.err.println();
+            System.err.println("       java -jar tester.jar --zucchini path/to/result.json");
+            System.err.println("           → run generate zucchini json for all tests");
+            System.err.println();
+            System.err.printf ("       java -jar tester.jar --zucchini path/to/result.json %s.SomeTestClass%n", TEST_PACKAGE);
+            System.err.println("           → run and generate zucchini json for test SomeTestClass");
             System.exit(1);
             return;
         }
@@ -33,23 +42,24 @@ public class TesterLauncher {
             System.exit(studentRun());
         } else { // zucchini
             String jsonOutputFile = args[1];
-            System.exit(zucchiniRun(jsonOutputFile));
+            String testClassName = (args.length >= 3)? args[2] : null;
+            System.exit(zucchiniRun(jsonOutputFile, testClassName));
         }
     }
 
     private static int studentRun() {
         TesterLauncher launcher = new TesterLauncher(
             TEST_PACKAGE, System.out, System.err);
-        launcher.runTests();
+        launcher.runAllTests();
         launcher.printStudentSummary();
         return launcher.wasSuccessful()? 0 : 1;
     }
 
-    private static int zucchiniRun(String jsonOutputFile) {
+    private static int zucchiniRun(String jsonOutputFile, String testClassName) {
         try (PrintStream jsonOutputStream = new PrintStream(jsonOutputFile)) {
             TesterLauncher launcher = new TesterLauncher(
                 TEST_PACKAGE, jsonOutputStream, System.err);
-            launcher.runTests();
+            launcher.runTests(testClassName);
             launcher.printJsonSummary();
 
             // Don't confuse zucchini backend by returning nonzero exit
@@ -65,13 +75,18 @@ public class TesterLauncher {
         this.pkg = pkg;
         this.out = out;
         this.err = err;
+        this.results = new TreeSet<>();
     }
 
-    private void runTests() {
+    private void runAllTests() {
+        runTests(null);
+    }
+
+    private void runTests(String testClassName) {
         Launcher launcher = LauncherFactory.create();
         TestListener testListener = new TestListener();
-        launcher.execute(buildDiscoveryRequest(), testListener);
-        results = testListener.harvest();
+        launcher.execute(buildDiscoveryRequest(testClassName), testListener);
+        results.addAll(testListener.harvest());
     }
 
     public void printStudentSummary() {
@@ -120,10 +135,15 @@ public class TesterLauncher {
         return true;
     }
 
-    private LauncherDiscoveryRequest buildDiscoveryRequest() {
+    private LauncherDiscoveryRequest buildDiscoveryRequest(String testClassName) {
         LauncherDiscoveryRequestBuilder builder = new LauncherDiscoveryRequestBuilder();
-        builder.selectors(selectPackage(pkg));
+
+        if (testClassName == null) {
+            builder.selectors(selectPackage(pkg));
+        } else {
+            builder.selectors(selectClass(testClassName));
+        }
+
         return builder.build();
     }
-
 }

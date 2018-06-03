@@ -2,6 +2,7 @@ package edu.gatech.cs2110.circuitsim.tester;
 
 import static org.junit.platform.engine.TestExecutionResult.Status.SUCCESSFUL;
 
+import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -15,7 +16,7 @@ public class ZucchiniJson {
         gson = new Gson();
     }
 
-    public void printResultsAsJson(List<TestClassResult> results, Appendable out) {
+    public void printResultsAsJson(Collection<TestClassResult> results, Appendable out) {
         ZucchiniJsonRoot root = new ZucchiniJsonRoot(
             results.stream().flatMap(classResult -> classResult.getMethodResults().stream()
                 .map(ZucchiniJsonMethod::fromMethodResult)).collect(Collectors.toList()));
