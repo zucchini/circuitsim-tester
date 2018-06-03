@@ -41,12 +41,14 @@ public class ZucchiniJson {
     }
 
     private static class ZucchiniJsonMethod {
+        private String displayName;
         private String fullMethodName;
         private boolean passed;
         private String message;
 
-        public ZucchiniJsonMethod(String fullMethodName, boolean passed,
-                                  String message) {
+        public ZucchiniJsonMethod(String displayName, String fullMethodName,
+                                  boolean passed, String message) {
+            this.displayName = displayName;
             this.fullMethodName = fullMethodName;
             this.passed = passed;
             this.message = message;
@@ -58,7 +60,8 @@ public class ZucchiniJson {
             boolean passed = methodResult.getResult().getStatus() == SUCCESSFUL;
             String message = methodResult.getResult().getThrowable().map(err -> err.getMessage())
                                                                     .orElse(null);
-            return new ZucchiniJsonMethod(fullMethodName, passed, message);
+            return new ZucchiniJsonMethod(methodResult.getId().getDisplayName(),
+                                          fullMethodName, passed, message);
         }
     }
 }
