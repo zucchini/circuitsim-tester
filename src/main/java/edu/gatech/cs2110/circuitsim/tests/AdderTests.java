@@ -7,9 +7,11 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
 import edu.gatech.cs2110.circuitsim.extensions.CircuitSimExtension;
+import edu.gatech.cs2110.circuitsim.extensions.SubcircuitTest;
 
 @DisplayName("1-Bit Adder")
 @ExtendWith(CircuitSimExtension.class)
+@SubcircuitTest(file="adder.sim", subcircuit="1-bit adder")
 public class AdderTests {
     @Test
     @DisplayName("0 + 0 + 0 = 0")
