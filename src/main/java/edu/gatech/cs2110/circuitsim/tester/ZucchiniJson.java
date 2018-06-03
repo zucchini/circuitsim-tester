@@ -17,9 +17,24 @@ public class ZucchiniJson {
     }
 
     public void printResultsAsJson(Collection<TestClassResult> results, Appendable out) {
-        ZucchiniJsonRoot root = new ZucchiniJsonRoot(
-            results.stream().flatMap(classResult -> classResult.getMethodResults().stream()
-                .map(ZucchiniJsonMethod::fromMethodResult)).collect(Collectors.toList()));
+        ZucchiniJsonRoot root;
+
+        // Join all class error messages into a newline-separated
+        // string
+        String error = results.stream()
+                              .filter(classResult -> classResult.getResult().getStatus() != SUCCESSFUL)
+                              .map(classResult -> classResult.getResult().getThrowable().get().getMessage())
+                              .collect(Collectors.joining("\n"));
+
+        // Zucchini treats an error as a 0, so don't bother writing test
+        // results unless there were no errors.
+        if (error.isEmpty()) {
+            root = new ZucchiniJsonRoot(
+                results.stream().flatMap(classResult -> classResult.getMethodResults().stream()
+                       .map(ZucchiniJsonMethod::fromMethodResult)).collect(Collectors.toList()));
+        } else {
+            root = new ZucchiniJsonRoot(error);
+        }
 
         gson.toJson(root, out);
     }

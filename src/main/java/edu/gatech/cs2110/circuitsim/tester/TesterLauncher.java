@@ -102,6 +102,13 @@ public class TesterLauncher {
             for (TestClassResult classResult : results) {
                 boolean printedSuite = false;
 
+                if (classResult.getResult().getStatus() != SUCCESSFUL) {
+                    out.printf("%n[FAIL] Test suite: %s: %s%n",
+                               classResult.getId().getDisplayName(),
+                               classResult.getResult().getThrowable().get().getMessage());
+                    continue;
+                }
+
                 for (TestMethodResult methodResult : classResult.getMethodResults()) {
                     if (methodResult.getResult().getStatus() != SUCCESSFUL) {
                         if (!printedSuite) {
