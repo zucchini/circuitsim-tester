@@ -6,13 +6,32 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
+import com.ra4king.circuitsim.simulator.components.wiring.Pin;
+
 import edu.gatech.cs2110.circuitsim.extensions.CircuitSimExtension;
+import edu.gatech.cs2110.circuitsim.extensions.SubcircuitPin;
 import edu.gatech.cs2110.circuitsim.extensions.SubcircuitTest;
+
 
 @DisplayName("1-Bit Adder")
 @ExtendWith(CircuitSimExtension.class)
 @SubcircuitTest(file="adder.sim", subcircuit="1-bit adder")
 public class AdderTests {
+    @SubcircuitPin(input=true)
+    private Pin a;
+
+    @SubcircuitPin(input=true)
+    private Pin b;
+
+    @SubcircuitPin(input=true)
+    private Pin cin;
+
+    @SubcircuitPin(input=false)
+    private Pin sum;
+
+    @SubcircuitPin(input=false)
+    private Pin cout;
+
     @Test
     @DisplayName("0 + 0 + 0 = 0")
     public void allZeroesIsZero() {
