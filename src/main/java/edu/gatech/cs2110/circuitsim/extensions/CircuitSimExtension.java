@@ -3,6 +3,7 @@ package edu.gatech.cs2110.circuitsim.extensions;
 import java.io.File;
 import java.lang.reflect.Field;
 import java.util.Arrays;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -21,6 +22,7 @@ import org.junit.jupiter.api.extension.ParameterResolver;
 
 public class CircuitSimExtension implements Extension, BeforeAllCallback, BeforeEachCallback,
                                             ParameterResolver {
+    private List<FieldInjection> fieldInjections;
     private CircuitBoard circuitBoard;
     private CircuitSim circuitSim;
 
@@ -47,13 +49,19 @@ public class CircuitSimExtension implements Extension, BeforeAllCallback, Before
         circuitSim.loadCircuits(circuitFile);
         circuitBoard = lookupSubcircuit(circuitSim, subcircuitAnnotation.subcircuit());
 
-        lookupAndAssignPins(circuitBoard, testClass, context.getRequiredTestInstance());
+        fieldInjections = new LinkedList<>();
+        fieldInjections.addAll(lookupPins(circuitBoard, testClass));
     }
 
     @Override
     public void beforeEach(ExtensionContext extensionContext) throws Exception {
         // Reset simulator before each test
         circuitSim.getSimulator().reset();
+
+        // Do simple dependency injection
+        for (FieldInjection fieldInjection : fieldInjections) {
+            fieldInjection.inject(extensionContext.getRequiredTestInstance());
+        }
     }
 
 
@@ -94,7 +102,9 @@ public class CircuitSimExtension implements Extension, BeforeAllCallback, Before
         return matchingCircuits.get(0);
     }
 
-    private void lookupAndAssignPins(CircuitBoard circuitBoard, Class<?> testClass, Object testInstance) {
+    private List<FieldInjection> lookupPins(CircuitBoard circuitBoard, Class<?> testClass) {
+        List<FieldInjection> fieldInjections = new LinkedList<>();
+
         List<Field> pinFields = Arrays.stream(testClass.getDeclaredFields())
                                       .filter(field -> field.isAnnotationPresent(SubcircuitPin.class))
                                       .collect(Collectors.toList());
@@ -144,9 +154,23 @@ public class CircuitSimExtension implements Extension, BeforeAllCallback, Before
                     matchingPin.isInput()? "input" : "output", pinAnnotation.input()? "input" : "output"));
             }
 
-            // TODO: this needs to be done in a beforeEach handler
-            // Perform some crude dependency injection
-            //pinField.set(testInstance, matchingPin);
+            fieldInjections.add(new FieldInjection(pinField, matchingPin));
+        }
+
+        return fieldInjections;
+    }
+
+    private static class FieldInjection {
+        private Field field;
+        private Object valueToInject;
+
+        public FieldInjection(Field field, Object valueToInject) {
+            this.field = field;
+            this.valueToInject = valueToInject;
+        }
+
+        public void inject(Object obj) throws IllegalAccessException {
+            field.set(obj, valueToInject);
         }
     }
 }
