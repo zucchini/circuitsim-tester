@@ -8,6 +8,10 @@ public class InputPin extends BasePin {
         super(pin, subcircuit);
     }
 
+    public int get() {
+        return subcircuit.getCircuitState().getLastPushed(pin.getPort(Pin.PORT)).getValue();
+    }
+
     public void set(int value) {
         pin.setValue(subcircuit.getCircuitState(), WireValue.of(value, pin.getBitSize()));
         subcircuit.getSimulator().stepAll();
