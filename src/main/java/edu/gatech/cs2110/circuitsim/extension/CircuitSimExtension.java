@@ -77,7 +77,7 @@ public class CircuitSimExtension implements Extension, BeforeAllCallback, Before
 
             boolean wantInputPin = InputPin.class.isAssignableFrom(pinField.getType());
             SubcircuitPin pinAnnotation = pinField.getDeclaredAnnotation(SubcircuitPin.class);
-            String pinLabel = pinAnnotation.value().isEmpty()? pinField.getName() : pinAnnotation.value();
+            String pinLabel = pinAnnotation.label().isEmpty()? pinField.getName() : pinAnnotation.label();
 
             BasePin pinWrapper = subcircuit.lookupPin(pinLabel, wantInputPin, pinAnnotation.bits());
             fieldInjections.add(new FieldInjection(pinField, pinWrapper));
