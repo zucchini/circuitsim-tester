@@ -93,7 +93,7 @@ class Subcircuit {
         circuitSim.getSimulator().reset();
     }
 
-    public BasePin lookupPin(String pinLabel, boolean wantInputPin) {
+    public BasePin lookupPin(String pinLabel, boolean wantInputPin, int wantBits) {
         String canonicalPinLabel = canonicalName(pinLabel);
         List<PinPeer> matchingPins = circuitBoard.getComponents().stream()
             .filter(component -> component instanceof PinPeer &&
@@ -114,15 +114,24 @@ class Subcircuit {
         }
 
         PinPeer matchingPin = matchingPins.get(0);
+        // Use their labels for error messages to be less confusing
+        String theirPinLabel = matchingPin.getProperties().getValue(Properties.LABEL);
 
         if (matchingPin.isInput() != wantInputPin) {
             throw new IllegalArgumentException(String.format(
                 "Subcircuit `%s' has %s pin labelled `%s', but expected it to be an %s pin instead",
                 circuitBoard.getCircuit().getName(),
-                // Use their label to be less confusing
-                matchingPin.getProperties().getValue(Properties.LABEL),
+                theirPinLabel,
                 matchingPin.isInput()? "input" : "output",
                 wantInputPin? "input" : "output"));
+        }
+
+        int actualBits = matchingPin.getComponent().getBitSize();
+        if (actualBits != wantBits) {
+            throw new IllegalArgumentException(String.format(
+                "Subcircuit `%s' has pin labelled `%s' with %d bits, but expected %d bits",
+                circuitBoard.getCircuit().getName(),
+                theirPinLabel, actualBits, wantBits));
         }
 
         BasePin pinWrapper = wantInputPin? new InputPin(matchingPin.getComponent(), this)

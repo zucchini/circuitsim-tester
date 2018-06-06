@@ -16,19 +16,19 @@ import edu.gatech.cs2110.circuitsim.extension.SubcircuitTest;
 @ExtendWith(CircuitSimExtension.class)
 @SubcircuitTest(file="adder.sim", subcircuit="1-bit adder")
 public class AdderTests {
-    @SubcircuitPin
+    @SubcircuitPin(bits = 1)
     private InputPin a;
 
-    @SubcircuitPin
+    @SubcircuitPin(bits = 1)
     private InputPin b;
 
-    @SubcircuitPin
+    @SubcircuitPin(bits = 1)
     private InputPin cin;
 
-    @SubcircuitPin
+    @SubcircuitPin(bits = 1)
     private OutputPin sum;
 
-    @SubcircuitPin
+    @SubcircuitPin(bits = 1)
     private OutputPin cout;
 
     @Test

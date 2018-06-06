@@ -7,4 +7,5 @@ import java.lang.annotation.Retention;
 @Retention(RUNTIME)
 public @interface SubcircuitPin {
     String value() default ""; // name of pin (default: name of variable)
+    int bits();
 }
