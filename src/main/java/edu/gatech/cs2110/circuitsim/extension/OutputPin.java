@@ -6,4 +6,8 @@ public class OutputPin extends BasePin {
     public OutputPin(Pin pin, Subcircuit subcircuit) {
         super(pin, subcircuit);
     }
+
+    public int get() {
+        return subcircuit.getCircuitState().getLastReceived(pin.getPort(Pin.PORT)).getValue();
+    }
 }

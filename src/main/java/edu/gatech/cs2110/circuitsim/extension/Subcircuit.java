@@ -5,10 +5,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import com.ra4king.circuitsim.gui.CircuitSim;
 import com.ra4king.circuitsim.gui.CircuitBoard;
+import com.ra4king.circuitsim.gui.CircuitSim;
 import com.ra4king.circuitsim.gui.Properties;
 import com.ra4king.circuitsim.gui.peers.wiring.PinPeer;
+import com.ra4king.circuitsim.simulator.Circuit;
+import com.ra4king.circuitsim.simulator.CircuitState;
+import com.ra4king.circuitsim.simulator.Simulator;
 
 class Subcircuit {
     private CircuitSim circuitSim;
@@ -17,6 +20,26 @@ class Subcircuit {
     public Subcircuit(CircuitSim circuitSim, CircuitBoard circuitBoard) {
         this.circuitSim = circuitSim;
         this.circuitBoard = circuitBoard;
+    }
+
+    public CircuitSim getCircuitSim() {
+        return circuitSim;
+    }
+
+    public Simulator getSimulator() {
+        return getCircuitSim().getSimulator();
+    }
+
+    public CircuitBoard getCircuitBoard() {
+        return circuitBoard;
+    }
+
+    public Circuit getCircuit() {
+        return circuitBoard.getCircuit();
+    }
+
+    public CircuitState getCircuitState() {
+        return getCircuit().getTopLevelState();
     }
 
     // Don't hate me for `throws Exception', Roi made me do it
