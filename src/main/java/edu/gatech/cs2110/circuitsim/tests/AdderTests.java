@@ -34,12 +34,20 @@ public class AdderTests {
     @Test
     @DisplayName("0 + 0 + 0 = 0")
     public void allZeroesIsZero() {
-        assertEquals(0, 0 + 0 + 0);
+        a.set(0);
+        b.set(0);
+        cin.set(0);
+        assertEquals(0, sum.get());
+        assertEquals(0, cout.get());
     }
 
     @Test
     @DisplayName("1 + 1 + 1 = 3")
     public void allOnesIsThree() {
-        assertEquals(3, 1 + 1 + 1);
+        a.set(1);
+        b.set(1);
+        cin.set(1);
+        assertEquals(1, sum.get());
+        assertEquals(1, cout.get());
     }
 }
