@@ -1,4 +1,4 @@
-package edu.gatech.cs2110.circuitsim.extensions;
+package edu.gatech.cs2110.circuitsim.extension;
 
 import java.io.File;
 import java.lang.reflect.Field;
