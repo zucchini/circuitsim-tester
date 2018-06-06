@@ -23,6 +23,9 @@ import org.junit.jupiter.api.extension.ParameterResolver;
 public class CircuitSimExtension implements Extension, BeforeAllCallback, BeforeEachCallback,
                                             ParameterResolver {
     private List<FieldInjection> fieldInjections;
+    // TODO: Put all this info about subcircuit state into a new class
+    //       called SubcircuitState or something, which we can pass into
+    //       wrappers like Input/OutputPin. Should be much cleaner
     private CircuitBoard circuitBoard;
     private CircuitSim circuitSim;
 
@@ -116,13 +119,15 @@ public class CircuitSimExtension implements Extension, BeforeAllCallback, Before
         //       next
 
         for (Field pinField : pinFields) {
-            if (!pinField.getType().equals(PinPeer.class)) {
+            if (!BasePin.class.isAssignableFrom(pinField.getType())) {
                 throw new IllegalArgumentException(
-                    "Test class fields annotated with @SubcircuitPin should be of type PinPeer");
+                    "Test class fields annotated with @SubcircuitPin should be of type InputPin or OutputPin");
             }
 
+            boolean wantInputPin = InputPin.class.isAssignableFrom(pinField.getType());
             SubcircuitPin pinAnnotation = pinField.getDeclaredAnnotation(SubcircuitPin.class);
-            String canonicalPinLabel = canonicalName(pinField.getName());
+            String canonicalPinLabel = canonicalName(pinAnnotation.value().isEmpty()? pinField.getName()
+                                                                                    : pinAnnotation.value());
 
             // TODO: Search circuit for the pins we want
             List<PinPeer> matchingPins = circuitBoard.getComponents().stream()
@@ -145,16 +150,20 @@ public class CircuitSimExtension implements Extension, BeforeAllCallback, Before
 
             PinPeer matchingPin = matchingPins.get(0);
 
-            if (matchingPin.isInput() != pinAnnotation.input()) {
+            if (matchingPin.isInput() != wantInputPin) {
                 throw new IllegalArgumentException(String.format(
                     "Subcircuit `%s' has %s pin labelled `%s', but expected it to be an %s pin instead",
                     circuitBoard.getCircuit().getName(),
                     // Use their label to be less confusing
                     matchingPin.getProperties().getValue(Properties.LABEL),
-                    matchingPin.isInput()? "input" : "output", pinAnnotation.input()? "input" : "output"));
+                    matchingPin.isInput()? "input" : "output",
+                    wantInputPin? "input" : "output"));
             }
 
-            fieldInjections.add(new FieldInjection(pinField, matchingPin));
+            BasePin pinWrapper = wantInputPin? new InputPin(matchingPin.getComponent())
+                                             : new OutputPin(matchingPin.getComponent());
+
+            fieldInjections.add(new FieldInjection(pinField, pinWrapper));
         }
 
         return fieldInjections;
