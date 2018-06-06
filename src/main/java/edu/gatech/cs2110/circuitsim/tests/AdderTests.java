@@ -6,7 +6,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
-import com.ra4king.circuitsim.simulator.components.wiring.Pin;
+import com.ra4king.circuitsim.gui.peers.wiring.PinPeer;
 
 import edu.gatech.cs2110.circuitsim.extensions.CircuitSimExtension;
 import edu.gatech.cs2110.circuitsim.extensions.SubcircuitPin;
@@ -18,19 +18,19 @@ import edu.gatech.cs2110.circuitsim.extensions.SubcircuitTest;
 @SubcircuitTest(file="adder.sim", subcircuit="1-bit adder")
 public class AdderTests {
     @SubcircuitPin(input=true)
-    private Pin a;
+    private PinPeer a;
 
     @SubcircuitPin(input=true)
-    private Pin b;
+    private PinPeer b;
 
     @SubcircuitPin(input=true)
-    private Pin cin;
+    private PinPeer cin;
 
     @SubcircuitPin(input=false)
-    private Pin sum;
+    private PinPeer sum;
 
     @SubcircuitPin(input=false)
-    private Pin cout;
+    private PinPeer cout;
 
     @Test
     @DisplayName("0 + 0 + 0 = 0")

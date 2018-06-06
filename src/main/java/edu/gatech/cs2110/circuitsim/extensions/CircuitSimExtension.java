@@ -9,7 +9,9 @@ import java.util.stream.Collectors;
 
 import com.ra4king.circuitsim.gui.CircuitSim;
 import com.ra4king.circuitsim.gui.CircuitBoard;
-import com.ra4king.circuitsim.simulator.Circuit;
+import com.ra4king.circuitsim.gui.Properties;
+import com.ra4king.circuitsim.gui.peers.wiring.PinPeer;
+//import com.ra4king.circuitsim.simulator.Circuit;
 import org.junit.jupiter.api.extension.BeforeAllCallback;
 import org.junit.jupiter.api.extension.BeforeEachCallback;
 import org.junit.jupiter.api.extension.ExtensionContext;
@@ -19,7 +21,7 @@ import org.junit.jupiter.api.extension.ParameterResolver;
 
 public class CircuitSimExtension implements Extension, BeforeAllCallback, BeforeEachCallback,
                                             ParameterResolver {
-    private Circuit circuit;
+    private CircuitBoard circuitBoard;
     private CircuitSim circuitSim;
 
     @Override
@@ -43,9 +45,9 @@ public class CircuitSimExtension implements Extension, BeforeAllCallback, Before
 
         circuitSim = new CircuitSim(false);
         circuitSim.loadCircuits(circuitFile);
-        circuit = lookupSubcircuit(circuitSim, subcircuitAnnotation.subcircuit());
+        circuitBoard = lookupSubcircuit(circuitSim, subcircuitAnnotation.subcircuit());
 
-        lookupAndAssignPins(circuit, testClass, context.getRequiredTestInstance());
+        lookupAndAssignPins(circuitBoard, testClass, context.getRequiredTestInstance());
     }
 
     @Override
@@ -69,12 +71,12 @@ public class CircuitSimExtension implements Extension, BeforeAllCallback, Before
         return name.toLowerCase().replaceAll("[^0-9a-z]+", "");
     }
 
-    private Circuit lookupSubcircuit(CircuitSim circuitSim, String subcircuitName) {
+    private CircuitBoard lookupSubcircuit(CircuitSim circuitSim, String subcircuitName) {
         String canonicalSubcircuitName = canonicalName(subcircuitName);
         Map<String, CircuitBoard> boards = circuitSim.getCircuitBoards();
-        List<Circuit> matchingCircuits = boards.entrySet().stream()
+        List<CircuitBoard> matchingCircuits = boards.entrySet().stream()
             .filter(entry -> canonicalName(entry.getKey()).equals(canonicalSubcircuitName))
-            .map(entry -> entry.getValue().getCircuit())
+            .map(Map.Entry::getValue)
             .collect(Collectors.toList());
 
         if (matchingCircuits.size() == 0) {
@@ -92,15 +94,59 @@ public class CircuitSimExtension implements Extension, BeforeAllCallback, Before
         return matchingCircuits.get(0);
     }
 
-    private void lookupAndAssignPins(Circuit circuit, Class<?> testClass, Object testInstance) {
+    private void lookupAndAssignPins(CircuitBoard circuitBoard, Class<?> testClass, Object testInstance) {
         List<Field> pinFields = Arrays.stream(testClass.getDeclaredFields())
                                       .filter(field -> field.isAnnotationPresent(SubcircuitPin.class))
                                       .collect(Collectors.toList());
 
+        // TODO: Detect duplicate pins (`Pin a' and `Pin b' are distinct
+        //       fields in Java but not here). Easy solution: sort the
+        //       stream by canonicalName(field.getName()) and iterate
+        //       over the resulting List, comparing each with the
+        //       next
+
         for (Field pinField : pinFields) {
+            if (!pinField.getType().equals(PinPeer.class)) {
+                throw new IllegalArgumentException(
+                    "Test class fields annotated with @SubcircuitPin should be of type PinPeer");
+            }
+
             SubcircuitPin pinAnnotation = pinField.getDeclaredAnnotation(SubcircuitPin.class);
+            String canonicalPinLabel = canonicalName(pinField.getName());
 
             // TODO: Search circuit for the pins we want
+            List<PinPeer> matchingPins = circuitBoard.getComponents().stream()
+                .filter(component -> component instanceof PinPeer &&
+                        ((PinPeer) component).getProperties().containsProperty(Properties.LABEL) &&
+                        canonicalPinLabel.equals(
+                            canonicalName(((PinPeer) component).getProperties().getValue(Properties.LABEL))))
+                .map(component -> (PinPeer) component)
+                .collect(Collectors.toList());
+
+            if (matchingPins.size() > 1) {
+                throw new IllegalArgumentException(String.format(
+                    "Subcircuit `%s' contains %d input/output pins labelled `%s', expected 1",
+                    circuitBoard.getCircuit().getName(), matchingPins.size(), canonicalPinLabel));
+            } else if (matchingPins.isEmpty()) {
+                throw new IllegalArgumentException(String.format(
+                    "Subcircuit `%s' contains no input/output pins labelled `%s'!",
+                    circuitBoard.getCircuit().getName(), canonicalPinLabel));
+            }
+
+            PinPeer matchingPin = matchingPins.get(0);
+
+            if (matchingPin.isInput() != pinAnnotation.input()) {
+                throw new IllegalArgumentException(String.format(
+                    "Subcircuit `%s' has %s pin labelled `%s', but expected it to be an %s pin instead",
+                    circuitBoard.getCircuit().getName(),
+                    // Use their label to be less confusing
+                    matchingPin.getProperties().getValue(Properties.LABEL),
+                    matchingPin.isInput()? "input" : "output", pinAnnotation.input()? "input" : "output"));
+            }
+
+            // TODO: this needs to be done in a beforeEach handler
+            // Perform some crude dependency injection
+            //pinField.set(testInstance, matchingPin);
         }
     }
 }
