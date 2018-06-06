@@ -129,6 +129,10 @@ public class TesterLauncher {
 
     private boolean wasSuccessful() {
         for (TestClassResult classResult : results) {
+            if (classResult.getResult().getStatus() != SUCCESSFUL) {
+                return false;
+            }
+
             for (TestMethodResult methodResult : classResult.getMethodResults()) {
                 if (methodResult.getResult().getStatus() != SUCCESSFUL) {
                     return false;
