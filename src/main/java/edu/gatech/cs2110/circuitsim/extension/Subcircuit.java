@@ -102,8 +102,8 @@ class Subcircuit {
                 wantInputPin? "input" : "output"));
         }
 
-        BasePin pinWrapper = wantInputPin? new InputPin(matchingPin.getComponent())
-                                         : new OutputPin(matchingPin.getComponent());
+        BasePin pinWrapper = wantInputPin? new InputPin(matchingPin.getComponent(), this)
+                                         : new OutputPin(matchingPin.getComponent(), this);
         return pinWrapper;
     }
 }
