@@ -170,6 +170,7 @@ public class CircuitSimExtension implements Extension, BeforeAllCallback, Before
         }
 
         public void inject(Object obj) throws IllegalAccessException {
+            field.setAccessible(true);
             field.set(obj, valueToInject);
         }
     }
