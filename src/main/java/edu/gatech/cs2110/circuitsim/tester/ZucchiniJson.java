@@ -8,12 +8,13 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 
 public class ZucchiniJson {
     private Gson gson;
 
     public ZucchiniJson() {
-        gson = new Gson();
+        gson = new GsonBuilder().setPrettyPrinting().create();
     }
 
     public void printResultsAsJson(Collection<TestClassResult> results, Appendable out) {
