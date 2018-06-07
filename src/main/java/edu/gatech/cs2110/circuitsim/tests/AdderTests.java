@@ -3,8 +3,9 @@ package edu.gatech.cs2110.circuitsim.tests;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 
 import edu.gatech.cs2110.circuitsim.extension.CircuitSimExtension;
 import edu.gatech.cs2110.circuitsim.extension.InputPin;
@@ -31,23 +32,24 @@ public class AdderTests {
     @SubcircuitPin(bits = 1)
     private OutputPin cout;
 
-    @Test
-    @DisplayName("0 + 0 + 0 = 0")
-    public void allZeroesIsZero() {
-        a.set(0);
-        b.set(0);
-        cin.set(0);
-        assertEquals(0, sum.get());
-        assertEquals(0, cout.get());
-    }
-
-    @Test
-    @DisplayName("1 + 1 + 1 = 3")
-    public void allOnesIsThree() {
-        a.set(1);
-        b.set(1);
-        cin.set(1);
-        assertEquals(1, sum.get());
-        assertEquals(1, cout.get());
+    @ParameterizedTest(name="a:{0}, b:{1}, cin:{2} → cout:{3} + sum:{4}")
+    @CsvSource({
+      /* a  b cin | cout sum */
+        "0, 0, 0,    0,   0",
+        "0, 0, 1,    0,   1",
+        "0, 1, 0,    0,   1",
+        "0, 1, 1,    1,   0",
+        "1, 0, 0,    0,   1",
+        "1, 0, 1,    1,   0",
+        "1, 1, 0,    0,   0",
+        "1, 1, 1,    0,   0"
+    })
+    public void oneBitAdder(int aIn, int bIn, int cinIn,
+                            int coutOut, int sumOut) {
+        a.set(aIn);
+        b.set(bIn);
+        cin.set(cinIn);
+        assertEquals(coutOut, cout.get(), "cout");
+        assertEquals(sumOut, sum.get(), "sum");
     }
 }

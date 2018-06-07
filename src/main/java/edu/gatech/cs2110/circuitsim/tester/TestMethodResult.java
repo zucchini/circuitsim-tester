@@ -23,6 +23,9 @@ public class TestMethodResult implements Comparable<TestMethodResult> {
 
     @Override
     public int compareTo(TestMethodResult other) {
-        return source.getMethodName().compareTo(other.source.getMethodName());
+        int methodNameCompared = source.getMethodName().compareTo(other.source.getMethodName());
+
+        return (methodNameCompared == 0)? id.getDisplayName().compareTo(other.id.getDisplayName())
+                                        : methodNameCompared;
     }
 }

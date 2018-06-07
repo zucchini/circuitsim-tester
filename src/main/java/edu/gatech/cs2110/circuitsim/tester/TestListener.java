@@ -37,8 +37,11 @@ public class TestListener implements TestExecutionListener {
                 testIdentifier, classSource, testExecutionResult);
             classResults.put(classSource.getClassName(), tcr);
         } else if (source instanceof MethodSource) {
-            methodResults.add(new TestMethodResult(
-                testIdentifier, (MethodSource) source, testExecutionResult));
+            // Ignore template tests (@ParameterizedTests)
+            if (testIdentifier.isTest()) {
+                methodResults.add(new TestMethodResult(
+                    testIdentifier, (MethodSource) source, testExecutionResult));
+            }
         } else {
             throw new IllegalArgumentException(String.format(
                 "test %s has a source which is neither a class nor a method",
