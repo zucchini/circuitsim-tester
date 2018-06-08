@@ -19,4 +19,17 @@ public class OutputPin extends BasePin {
                 "Is the output pin connected to anything?");
         }
     }
+
+    // Sign extend
+    public int getSext() {
+        int got = get();
+        int bits = pin.getBitSize();
+
+        // x << 32 == x if x is a java int, so exclude that case
+        if (bits < 32 && (got & (1 << (bits - 1))) != 0) {
+            return got | (-1 << bits);
+        } else {
+            return got;
+        }
+    }
 }
