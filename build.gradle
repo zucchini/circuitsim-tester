@@ -15,7 +15,7 @@ plugins {
 }
 
 // Define the main class for the application
-mainClassName = 'edu.gatech.cs2110.circuitsim.tester.TesterLauncher'
+mainClassName = 'edu.gatech.cs2110.circuitsim.launcher.TesterLauncher'
 
 dependencies {
     // Don't need to put gson in here since the CircuitSim jar already
