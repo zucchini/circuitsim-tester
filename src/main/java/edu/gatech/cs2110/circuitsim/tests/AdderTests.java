@@ -41,8 +41,8 @@ public class AdderTests {
         "0, 1, 1,    1,   0",
         "1, 0, 0,    0,   1",
         "1, 0, 1,    1,   0",
-        "1, 1, 0,    0,   0",
-        "1, 1, 1,    0,   0"
+        "1, 1, 0,    1,   0",
+        "1, 1, 1,    1,   1"
     })
     public void oneBitAdder(int aIn, int bIn, int cinIn,
                             int coutOut, int sumOut) {
