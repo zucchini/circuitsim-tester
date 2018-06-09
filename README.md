@@ -160,6 +160,132 @@ the same name as the test.
 You can see the finished product in
 `src/main/java/edu/gatech/cs2110/circuitsim/tests/ToyALU.java`.
 
+#### Testing sequential logic
+
+Combinational logic is easy enough, but what about a state machine? Consider the following:
+
+![fsm](https://i.imgur.com/cnGx4Y9.png)
+
+<!---
+# dot -Tpng fsm.dot -Nfontname=Roboto -Nfontsize=10 -Efontname=Roboto -Efontsize=10 -o fsm.png
+
+digraph {
+    size="8,8"
+    dpi=200
+    //ordering=out
+    rankdir="LR"
+
+    "" [shape=none]
+    s0 [shape=circle, label="s0\na = 1"]
+    s1 [shape=circle, label="s1\na = 0"]
+
+    ""  -> s0
+    s0  -> s0 [label="g'"]
+    s0  -> s1 [label="g"]
+    s1  -> s1 [label="g"]
+    s1  -> s0 [label="g'"]
+}
+
+# vim:set ft=dot:
+--->
+
+which corresponds to this one-hot circuit:
+
+![screenshot of `fsm.sim`](https://i.imgur.com/sbVb2hv.png)
+
+The register here is kind of a pain, because we want to test the
+combinational logic on each side of it. Luckily, we can use a feature in
+the tester which replaces the register with some Pin components before
+running the tests, (*very*) roughly like this:
+
+![screenshot of `fsm.sim` after mocking the register](https://i.imgur.com/DfxqtrP.png)
+
+The syntax for this is similar to pins:
+
+```java
+@DisplayName("Finite State Machine")
+@ExtendWith(CircuitSimExtension.class)
+@SubcircuitTest(file="fsm.sim", subcircuit="fsm")
+public class FsmTests {
+    @SubcircuitPin(bits=1)
+    private InputPin g;
+
+    @SubcircuitPin(bits=1)
+    private InputPin clk;
+
+    @SubcircuitPin(bits=1)
+    private InputPin rst;
+
+    @SubcircuitPin(bits=1)
+    private InputPin en;
+
+    @SubcircuitPin(bits=1)
+    private OutputPin a;
+
+    @SubcircuitRegister(bits=2, onlyRegister=true)
+    private MockRegister stateReg;
+}
+```
+
+So we specify the input/output pins we want as usual, but then also
+require there to be exactly 1 2-bit register in the subcircuit: the
+state register.
+
+Testing the output `a` is fairly simple, so let's start with that:
+
+```java
+    @DisplayName("output a")
+    @Test
+    public void outputA() {
+        stateReg.getQ().set(0b00);
+        assertEquals(0, a.get(), "output a in state 00");
+        stateReg.getQ().set(0b01);
+        assertEquals(1, a.get(), "output a in state 01");
+        stateReg.getQ().set(0b10);
+        assertEquals(0, a.get(), "output a in state 10");
+    }
+```
+
+[`MockRegister.getQ()`][4] returns an `InputPin` that the tester placed
+where the out port of the register used to be, so we can set it to an
+arbitrary value just like any other input pin.
+
+[`MockRegister.getD()`][4], on the other hand, is an `OutputPin`:
+
+```java
+    @ParameterizedTest(name="state:{0}, g:{1} → next state:{2}")
+    @CsvSource({
+        /* state  g | next state */
+        "   0b00, 0,        0b01",
+        "   0b00, 1,        0b01",
+        "   0b01, 0,        0b01",
+        "   0b01, 1,        0b10",
+        "   0b10, 0,        0b01",
+        "   0b10, 1,        0b10",
+    })
+    public void transition(@ConvertWith(BasesConverter.class) int stateIn,
+                           int gIn,
+                           @ConvertWith(BasesConverter.class) int nextStateOut) {
+        stateReg.getQ().set(stateIn);
+        g.set(gIn);
+        assertEquals(nextStateOut, stateReg.getD().get(), "next state");
+    }
+```
+
+You can see the finished product at
+`src/main/java/edu/gatech/cs2110/circuitsim/tests/FsmTests.java`.
+
+Zucchini Support
+----------------
+
+No [zucchini][6] backend exists yet, but the launcher supports creating
+Zucchini-friendly JSON if you run:
+
+    java -jar hwX-tester.jar --zucchini results.json edu.gatech.cs2110.circuitsim.tests.FsmTests
+
 [1]: https://github.com/ra4king/CircuitSim
 [2]: https://ausbin.github.io/circuitsim-grader-template/edu/gatech/cs2110/circuitsim/api/Subcircuit.html#fromPath(java.lang.String,java.lang.String)
 [3]: https://ausbin.github.io/circuitsim-grader-template/edu/gatech/cs2110/circuitsim/api/SubcircuitPin.html
+[4]: https://ausbin.github.io/circuitsim-grader-template/edu/gatech/cs2110/circuitsim/api/MockRegister.html#getQ()
+[5]: https://ausbin.github.io/circuitsim-grader-template/edu/gatech/cs2110/circuitsim/api/MockRegister.html#getD()
+[6]: https://github.com/zucchini/zucchini
