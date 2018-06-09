@@ -1,4 +1,4 @@
-package edu.gatech.cs2110.circuitsim.tester;
+package edu.gatech.cs2110.circuitsim.launcher;
 
 import static org.junit.platform.engine.TestExecutionResult.Status.SUCCESSFUL;
 

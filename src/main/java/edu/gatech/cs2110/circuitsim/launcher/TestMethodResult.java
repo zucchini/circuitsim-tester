@@ -1,4 +1,4 @@
-package edu.gatech.cs2110.circuitsim.tester;
+package edu.gatech.cs2110.circuitsim.launcher;
 
 import org.junit.platform.engine.TestExecutionResult;
 import org.junit.platform.engine.support.descriptor.MethodSource;
