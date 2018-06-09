@@ -1,12 +1,12 @@
-package edu.gatech.cs2110.circuitsim.extension;
+package edu.gatech.cs2110.circuitsim.api;
 
 import com.ra4king.circuitsim.simulator.components.wiring.Pin;
 
-abstract class BasePin {
+public abstract class BasePin {
     protected Pin pin;
     protected Subcircuit subcircuit;
 
-    BasePin(Pin pin, Subcircuit subcircuit) {
+    public BasePin(Pin pin, Subcircuit subcircuit) {
         this.pin = pin;
         this.subcircuit = subcircuit;
     }

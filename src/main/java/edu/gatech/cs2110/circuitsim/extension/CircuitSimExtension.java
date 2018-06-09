@@ -14,6 +14,15 @@ import org.junit.jupiter.api.extension.Extension;
 import org.junit.jupiter.api.extension.ParameterContext;
 import org.junit.jupiter.api.extension.ParameterResolver;
 
+import edu.gatech.cs2110.circuitsim.api.BasePin;
+import edu.gatech.cs2110.circuitsim.api.InputPin;
+import edu.gatech.cs2110.circuitsim.api.MockRegister;
+import edu.gatech.cs2110.circuitsim.api.OutputPin;
+import edu.gatech.cs2110.circuitsim.api.Subcircuit;
+import edu.gatech.cs2110.circuitsim.api.SubcircuitPin;
+import edu.gatech.cs2110.circuitsim.api.SubcircuitRegister;
+import edu.gatech.cs2110.circuitsim.api.SubcircuitTest;
+
 public class CircuitSimExtension implements Extension, BeforeAllCallback, BeforeEachCallback,
                                             ParameterResolver {
     private List<FieldInjection> fieldInjections;

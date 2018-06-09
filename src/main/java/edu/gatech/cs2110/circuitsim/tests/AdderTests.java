@@ -7,11 +7,11 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 
+import edu.gatech.cs2110.circuitsim.api.InputPin;
+import edu.gatech.cs2110.circuitsim.api.OutputPin;
+import edu.gatech.cs2110.circuitsim.api.SubcircuitPin;
+import edu.gatech.cs2110.circuitsim.api.SubcircuitTest;
 import edu.gatech.cs2110.circuitsim.extension.CircuitSimExtension;
-import edu.gatech.cs2110.circuitsim.extension.InputPin;
-import edu.gatech.cs2110.circuitsim.extension.OutputPin;
-import edu.gatech.cs2110.circuitsim.extension.SubcircuitPin;
-import edu.gatech.cs2110.circuitsim.extension.SubcircuitTest;
 
 @DisplayName("1-Bit Adder")
 @ExtendWith(CircuitSimExtension.class)

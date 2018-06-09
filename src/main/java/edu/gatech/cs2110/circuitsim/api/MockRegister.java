@@ -1,4 +1,4 @@
-package edu.gatech.cs2110.circuitsim.extension;
+package edu.gatech.cs2110.circuitsim.api;
 
 public class MockRegister {
     private InputPin q;

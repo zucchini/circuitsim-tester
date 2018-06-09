@@ -1,4 +1,4 @@
-package edu.gatech.cs2110.circuitsim.extension;
+package edu.gatech.cs2110.circuitsim.api;
 
 import java.io.File;
 import java.util.Collection;
@@ -21,7 +21,7 @@ import com.ra4king.circuitsim.simulator.components.wiring.Pin;
 import com.ra4king.circuitsim.simulator.Port;
 import com.ra4king.circuitsim.simulator.Simulator;
 
-class Subcircuit {
+public class Subcircuit {
     private CircuitSim circuitSim;
     private CircuitBoard circuitBoard;
 
@@ -215,8 +215,8 @@ class Subcircuit {
         Collection<Port> originallyConnectedPorts = makeOrphanPort(port);
 
         PinPeer mockPinPeer = new PinPeer(new Properties(
-            new Properties.Property(Properties.BITSIZE, port.getLink().getBitSize()),
-            new Properties.Property(PinPeer.IS_INPUT, isInput)
+            new Properties.Property<>(Properties.BITSIZE, port.getLink().getBitSize()),
+            new Properties.Property<>(PinPeer.IS_INPUT, isInput)
         ), 0, 0);
 
         // Find a valid place to drop it

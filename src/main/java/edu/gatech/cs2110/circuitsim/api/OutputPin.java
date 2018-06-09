@@ -1,4 +1,4 @@
-package edu.gatech.cs2110.circuitsim.extension;
+package edu.gatech.cs2110.circuitsim.api;
 
 import com.ra4king.circuitsim.simulator.components.wiring.Pin;
 
