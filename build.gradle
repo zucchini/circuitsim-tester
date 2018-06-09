@@ -50,3 +50,12 @@ jar {
     // Include dependencies
     from { configurations.testRuntime.collect { it.isDirectory() ? it : zipTree(it) } }
 }
+
+javadoc {
+    title 'CircuitSim Autograder API'
+    include 'edu/gatech/cs2110/circuitsim/api/*'
+    // For github pages
+    destinationDir = file('docs')
+    options.addBooleanOption 'html5', true
+    options.addStringOption  'link', 'https://docs.oracle.com/javase/10/docs/api/'
+}
