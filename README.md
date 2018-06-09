@@ -1,6 +1,8 @@
 CircuitSim Autograder Template
 ==============================
 
+Javadoc for API: <https://ausbin.github.io/circuitsim-grader-template/>
+
 This repository aims to bridge the gap between the nitty-gritty details
 of the [CircuitSim][1] API and high-level tests on combinational logic
 in a CircuitSim file. Until now, we (the CS 2110 staff) handled
@@ -18,7 +20,5 @@ So I have two goals in this template:
  2. Insulate tests from the verboseness of the CircuitSim API by
     wrapping the CircuitSim API, and pass these wrappers to test classes
     using dependency injection
-
-TODO: explain what this is
 
 [1]: https://github.com/ra4king/CircuitSim
