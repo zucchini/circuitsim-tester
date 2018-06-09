@@ -1,16 +1,24 @@
 package edu.gatech.cs2110.circuitsim.extension;
 
 import java.io.File;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import com.ra4king.circuitsim.gui.CircuitBoard;
 import com.ra4king.circuitsim.gui.CircuitSim;
-import com.ra4king.circuitsim.gui.Properties;
+import com.ra4king.circuitsim.gui.peers.memory.RegisterPeer;
 import com.ra4king.circuitsim.gui.peers.wiring.PinPeer;
+import com.ra4king.circuitsim.gui.peers.wiring.PinPeer;
+import com.ra4king.circuitsim.gui.Properties;
+import com.ra4king.circuitsim.gui.Properties;
 import com.ra4king.circuitsim.simulator.Circuit;
 import com.ra4king.circuitsim.simulator.CircuitState;
+import com.ra4king.circuitsim.simulator.components.memory.Register;
+import com.ra4king.circuitsim.simulator.components.wiring.Pin;
+import com.ra4king.circuitsim.simulator.Port;
 import com.ra4king.circuitsim.simulator.Simulator;
 
 class Subcircuit {
@@ -137,5 +145,96 @@ class Subcircuit {
         BasePin pinWrapper = wantInputPin? new InputPin(matchingPin.getComponent(), this)
                                          : new OutputPin(matchingPin.getComponent(), this);
         return pinWrapper;
+    }
+
+    public MockRegister mockRegister(int wantBits) {
+        List<Register> registers = circuitBoard.getComponents().stream()
+            .filter(component -> component instanceof RegisterPeer)
+            .map(component -> ((RegisterPeer) component).getComponent())
+            .collect(Collectors.toList());
+
+        if (registers.size() > 1) {
+            throw new IllegalArgumentException(String.format(
+                "Subcircuit `%s' contains %d registers, expected 1",
+                circuitBoard.getCircuit().getName(), registers.size()));
+        } else if (registers.isEmpty()) {
+            throw new IllegalArgumentException(String.format(
+                "Subcircuit `%s' contains no registers!",
+                circuitBoard.getCircuit().getName()));
+        }
+
+        Register reg = registers.get(0);
+
+        int actualBits = reg.getBitSize();
+        if (actualBits != wantBits) {
+            throw new IllegalArgumentException(String.format(
+                "Subcircuit `%s' has register with %d bits, but expected %d bits",
+                circuitBoard.getCircuit().getName(), actualBits, wantBits));
+        }
+
+        // Idea: We want to test a circuit that looks like this:
+        //                ______
+        //       .-------|D    Q|------.
+        //       |       |      |      |
+        //       |       |_/\___|      |
+        //       |                     |
+        //       '--[ combinational ]--'
+        //          [    logic      ]
+        //
+        // But we want to test that combinational logic; who cares about
+        // the register. So rewire the circuit to look like this
+        // instead, where d is an output pin, and q is an input pin:
+        //
+        //       .-------(d)  [q]------.
+        //       |                     |
+        //       |                     |
+        //       |                     |
+        //       '--[ combinational ]--'
+        //          [    logic      ]
+        //
+        // This way, we can test that combinational logic on its own by
+        // checking the value of d and setting the value of q.
+
+        InputPin q = new InputPin(substitutePin(reg.getPort(Register.PORT_OUT), true), this);
+        OutputPin d = new OutputPin(substitutePin(reg.getPort(Register.PORT_IN), false), this);
+        OutputPin en = new OutputPin(substitutePin(reg.getPort(Register.PORT_ENABLE), false), this);
+        OutputPin clk = new OutputPin(substitutePin(reg.getPort(Register.PORT_CLK), false), this);
+        OutputPin rst = new OutputPin(substitutePin(reg.getPort(Register.PORT_ZERO), false), this);
+
+        return new MockRegister(q, d, en, clk, rst, this);
+    }
+
+    public Collection<Port> makeOrphanPort(Port port) {
+        Collection<Port> connectedPorts = port.getLink().getParticipants().stream()
+                                              .filter(p -> p != port).collect(Collectors.toList());
+        connectedPorts.stream().forEach(port::unlinkPort);
+        return connectedPorts;
+    }
+
+    public Pin substitutePin(Port port, boolean isInput) {
+        Collection<Port> originallyConnectedPorts = makeOrphanPort(port);
+
+        PinPeer mockPinPeer = new PinPeer(new Properties(
+            new Properties.Property(Properties.BITSIZE, port.getLink().getBitSize()),
+            new Properties.Property(PinPeer.IS_INPUT, isInput)
+        ), 0, 0);
+
+        // Find a valid place to drop it
+        while (!circuitBoard.isValidLocation(mockPinPeer)) {
+            mockPinPeer.setX(mockPinPeer.getX() + 32);
+            mockPinPeer.setY(mockPinPeer.getY() + 32);
+        }
+
+        circuitBoard.addComponent(mockPinPeer);
+
+        Pin mockPin = mockPinPeer.getComponent();
+        Port newPort = mockPin.getPort(Pin.PORT);
+        // In case CircuitSim automatically connected this new Pin to
+        // anything, disconnect it
+        makeOrphanPort(newPort);
+        // Now reconnect all the old stuff
+        originallyConnectedPorts.stream().forEach(newPort::linkPort);
+
+        return mockPin;
     }
 }

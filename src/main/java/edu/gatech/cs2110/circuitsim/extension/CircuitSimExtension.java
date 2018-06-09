@@ -2,6 +2,7 @@ package edu.gatech.cs2110.circuitsim.extension;
 
 import java.lang.reflect.Field;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -32,6 +33,7 @@ public class CircuitSimExtension implements Extension, BeforeAllCallback, Before
                                          subcircuitAnnotation.subcircuit());
         fieldInjections = new LinkedList<>();
         fieldInjections.addAll(generatePinFieldInjections(testClass));
+        fieldInjections.addAll(generateRegFieldInjections(testClass));
     }
 
     @Override
@@ -56,7 +58,7 @@ public class CircuitSimExtension implements Extension, BeforeAllCallback, Before
         return null;
     }
 
-    private List<FieldInjection> generatePinFieldInjections(Class<?> testClass) {
+    private Collection<FieldInjection> generatePinFieldInjections(Class<?> testClass) {
         List<FieldInjection> fieldInjections = new LinkedList<>();
 
         List<Field> pinFields = Arrays.stream(testClass.getDeclaredFields())
@@ -81,6 +83,39 @@ public class CircuitSimExtension implements Extension, BeforeAllCallback, Before
 
             BasePin pinWrapper = subcircuit.lookupPin(pinLabel, wantInputPin, pinAnnotation.bits());
             fieldInjections.add(new FieldInjection(pinField, pinWrapper));
+        }
+
+        return fieldInjections;
+    }
+
+    private Collection<FieldInjection> generateRegFieldInjections(Class<?> testClass) {
+        List<FieldInjection> fieldInjections = new LinkedList<>();
+
+        List<Field> regFields = Arrays.stream(testClass.getDeclaredFields())
+                                      .filter(field -> field.isAnnotationPresent(SubcircuitRegister.class))
+                                      .collect(Collectors.toList());
+
+        // TODO: Like in generatePinFieldInjections(), search for dupe
+        //       fields in the class itself
+
+        for (Field regField : regFields) {
+            if (!MockRegister.class.isAssignableFrom(regField.getType())) {
+                throw new IllegalArgumentException(
+                    "Test class fields annotated with @SubcircuitRegister should be of type MockRegister");
+            }
+
+            SubcircuitRegister regAnnotation = regField.getDeclaredAnnotation(SubcircuitRegister.class);
+
+            // I added this field to the annotation so that we don't
+            // break existing tests down the road if we implement this
+            if (!regAnnotation.onlyRegister()) {
+                throw new UnsupportedOperationException(
+                    "@SubcircuitRegister(onlyRegister=false, ...) is not yet supported. " +
+                    "(Note: the default is onlyRegister=false, so you'll need to write onlyRegister=true.)");
+            }
+
+            MockRegister reg = subcircuit.mockRegister(regAnnotation.bits());
+            fieldInjections.add(new FieldInjection(regField, reg));
         }
 
         return fieldInjections;
