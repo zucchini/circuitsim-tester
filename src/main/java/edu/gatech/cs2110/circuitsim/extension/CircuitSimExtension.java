@@ -11,8 +11,6 @@ import org.junit.jupiter.api.extension.BeforeAllCallback;
 import org.junit.jupiter.api.extension.BeforeEachCallback;
 import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.jupiter.api.extension.Extension;
-import org.junit.jupiter.api.extension.ParameterContext;
-import org.junit.jupiter.api.extension.ParameterResolver;
 
 import edu.gatech.cs2110.circuitsim.api.BasePin;
 import edu.gatech.cs2110.circuitsim.api.InputPin;
@@ -23,8 +21,7 @@ import edu.gatech.cs2110.circuitsim.api.SubcircuitPin;
 import edu.gatech.cs2110.circuitsim.api.SubcircuitRegister;
 import edu.gatech.cs2110.circuitsim.api.SubcircuitTest;
 
-public class CircuitSimExtension implements Extension, BeforeAllCallback, BeforeEachCallback,
-                                            ParameterResolver {
+public class CircuitSimExtension implements Extension, BeforeAllCallback, BeforeEachCallback {
     private List<FieldInjection> fieldInjections;
     private Subcircuit subcircuit;
 
@@ -54,17 +51,6 @@ public class CircuitSimExtension implements Extension, BeforeAllCallback, Before
         for (FieldInjection fieldInjection : fieldInjections) {
             fieldInjection.inject(extensionContext.getRequiredTestInstance());
         }
-    }
-
-
-    @Override
-    public boolean supportsParameter(ParameterContext parameterContext, ExtensionContext extensionContext) {
-        return false;
-    }
-
-    @Override
-    public Object resolveParameter(ParameterContext parameterContext, ExtensionContext extensionContext) {
-        return null;
     }
 
     private Collection<FieldInjection> generatePinFieldInjections(Class<?> testClass) {
