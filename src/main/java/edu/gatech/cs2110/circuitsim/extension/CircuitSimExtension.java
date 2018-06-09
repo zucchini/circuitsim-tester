@@ -109,7 +109,7 @@ public class CircuitSimExtension implements Extension, BeforeAllCallback, Before
                     "(Note: the default is onlyRegister=false, so you'll need to write onlyRegister=true.)");
             }
 
-            MockRegister reg = subcircuit.mockRegister(regAnnotation.bits());
+            MockRegister reg = subcircuit.mockOnlyRegister(regAnnotation.bits());
             fieldInjections.add(new FieldInjection(regField, reg));
         }
 

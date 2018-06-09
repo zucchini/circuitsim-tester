@@ -147,7 +147,7 @@ public class Subcircuit {
         return pinWrapper;
     }
 
-    public MockRegister mockRegister(int wantBits) {
+    public MockRegister mockOnlyRegister(int wantBits) {
         List<Register> registers = circuitBoard.getComponents().stream()
             .filter(component -> component instanceof RegisterPeer)
             .map(component -> ((RegisterPeer) component).getComponent())
