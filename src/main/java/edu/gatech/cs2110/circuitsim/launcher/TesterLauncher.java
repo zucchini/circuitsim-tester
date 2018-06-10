@@ -23,16 +23,12 @@ public class TesterLauncher {
 
     public static void main(String[] args) {
         boolean student = args.length == 0;
-        boolean zucchini = args.length >= 2 && args.length <= 3 && args[0].equals("--zucchini");
+        boolean zucchini = args.length == 3 && args[0].equals("--zucchini");
 
         if (!student && !zucchini) {
             System.err.println("usage: java -jar tester.jar");
             System.err.println("           → run student tests");
-            System.err.println();
-            System.err.println("       java -jar tester.jar --zucchini path/to/result.json");
-            System.err.println("           → run generate zucchini json for all tests");
-            System.err.println();
-            System.err.printf ("       java -jar tester.jar --zucchini path/to/result.json %s.SomeTestClass%n", TEST_PACKAGE);
+            System.err.println("       java -jar tester.jar --zucchini path/to/result.json SomeTestClass");
             System.err.println("           → run and generate zucchini json for test SomeTestClass");
             System.exit(1);
             return;
@@ -42,7 +38,7 @@ public class TesterLauncher {
             System.exit(studentRun());
         } else { // zucchini
             String jsonOutputFile = args[1];
-            String testClassName = (args.length >= 3)? args[2] : null;
+            String testClassName = args[2];
             System.exit(zucchiniRun(jsonOutputFile, testClassName));
         }
     }
@@ -60,7 +56,7 @@ public class TesterLauncher {
             TesterLauncher launcher = new TesterLauncher(
                 TEST_PACKAGE, jsonOutputStream, System.err);
             launcher.runTests(testClassName);
-            launcher.printJsonSummary();
+            launcher.printZucchiniJsonSummary();
 
             // Don't confuse zucchini backend by returning nonzero exit
             // code, even if some tests fail
@@ -123,8 +119,10 @@ public class TesterLauncher {
         }
     }
 
-    public void printJsonSummary() {
-        new ZucchiniJson().printResultsAsJson(results, out);
+    public void printZucchiniJsonSummary() {
+        // Only ran one class so should be just one TestClassResult
+        TestClassResult classResult = results.stream().findFirst().get();
+        new ZucchiniJson().printResultsAsJson(classResult, out);
     }
 
     private boolean wasSuccessful() {
@@ -149,7 +147,8 @@ public class TesterLauncher {
         if (testClassName == null) {
             builder.selectors(selectPackage(pkg));
         } else {
-            builder.selectors(selectClass(testClassName));
+            String fullyQualifiedClassName = String.format("%s.%s", pkg, testClassName);
+            builder.selectors(selectClass(fullyQualifiedClassName));
         }
 
         return builder.build();

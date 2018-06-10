@@ -17,24 +17,20 @@ public class ZucchiniJson {
         gson = new GsonBuilder().setPrettyPrinting().create();
     }
 
-    public void printResultsAsJson(Collection<TestClassResult> results, Appendable out) {
+    public void printResultsAsJson(TestClassResult classResult, Appendable out) {
         ZucchiniJsonRoot root;
-
-        // Join all class error messages into a newline-separated
-        // string
-        String error = results.stream()
-                              .filter(classResult -> classResult.getResult().getStatus() != SUCCESSFUL)
-                              .map(classResult -> classResult.getResult().getThrowable().get().getMessage())
-                              .collect(Collectors.joining("\n"));
+        boolean success = classResult.getResult().getStatus() == SUCCESSFUL;
 
         // Zucchini treats an error as a 0, so don't bother writing test
         // results unless there were no errors.
-        if (error.isEmpty()) {
+        if (success) {
             root = new ZucchiniJsonRoot(
-                results.stream().flatMap(classResult -> classResult.getMethodResults().stream()
-                       .map(ZucchiniJsonMethod::fromMethodResult)).collect(Collectors.toList()));
+                classResult.getMethodResults().stream()
+                                              .map(ZucchiniJsonMethod::fromMethodResult)
+                                              .collect(Collectors.toList()));
         } else {
-            root = new ZucchiniJsonRoot(error);
+            root = new ZucchiniJsonRoot(
+                classResult.getResult().getThrowable().get().getMessage());
         }
 
         gson.toJson(root, out);
@@ -59,26 +55,25 @@ public class ZucchiniJson {
 
     private static class ZucchiniJsonMethod {
         private String displayName;
-        private String fullMethodName;
+        private String methodName;
         private boolean passed;
         private String message;
 
-        public ZucchiniJsonMethod(String displayName, String fullMethodName,
+        public ZucchiniJsonMethod(String displayName, String methodName,
                                   boolean passed, String message) {
             this.displayName = displayName;
-            this.fullMethodName = fullMethodName;
+            this.methodName = methodName;
             this.passed = passed;
             this.message = message;
         }
 
         public static ZucchiniJsonMethod fromMethodResult(TestMethodResult methodResult) {
-            String fullMethodName = String.format("%s.%s", methodResult.getSource().getClassName(),
-                                                  methodResult.getSource().getMethodName());
             boolean passed = methodResult.getResult().getStatus() == SUCCESSFUL;
             String message = methodResult.getResult().getThrowable().map(err -> err.getMessage())
                                                                     .orElse(null);
             return new ZucchiniJsonMethod(methodResult.getId().getDisplayName(),
-                                          fullMethodName, passed, message);
+                                          methodResult.getSource().getMethodName(),
+                                          passed, message);
         }
     }
 }
