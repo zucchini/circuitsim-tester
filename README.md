@@ -281,7 +281,7 @@ Zucchini Support
 No [zucchini][6] backend exists yet, but the launcher supports creating
 Zucchini-friendly JSON if you run:
 
-    java -jar hwX-tester.jar --zucchini results.json edu.gatech.cs2110.circuitsim.tests.FsmTests
+    java -jar hwX-tester.jar --zucchini results.json FsmTests
 
 [1]: https://github.com/ra4king/CircuitSim
 [2]: https://ausbin.github.io/circuitsim-grader-template/edu/gatech/cs2110/circuitsim/api/Subcircuit.html#fromPath(java.lang.String,java.lang.String)
