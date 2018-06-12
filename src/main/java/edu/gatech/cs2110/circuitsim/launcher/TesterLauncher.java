@@ -23,12 +23,12 @@ public class TesterLauncher {
 
     public static void main(String[] args) {
         boolean student = args.length == 0;
-        boolean zucchini = args.length == 3 && args[0].equals("--zucchini");
+        boolean zucchini = args.length == 2 && args[0].equals("--zucchini");
 
         if (!student && !zucchini) {
             System.err.println("usage: java -jar tester.jar");
             System.err.println("           → run student tests");
-            System.err.println("       java -jar tester.jar --zucchini path/to/result.json SomeTestClass");
+            System.err.println("       java -jar tester.jar --zucchini SomeTestClass");
             System.err.println("           → run and generate zucchini json for test SomeTestClass");
             System.exit(1);
             return;
@@ -37,9 +37,8 @@ public class TesterLauncher {
         if (student) {
             System.exit(studentRun());
         } else { // zucchini
-            String jsonOutputFile = args[1];
-            String testClassName = args[2];
-            System.exit(zucchiniRun(jsonOutputFile, testClassName));
+            String testClassName = args[1];
+            System.exit(zucchiniRun(testClassName));
         }
     }
 
@@ -51,20 +50,15 @@ public class TesterLauncher {
         return launcher.wasSuccessful()? 0 : 1;
     }
 
-    private static int zucchiniRun(String jsonOutputFile, String testClassName) {
-        try (PrintStream jsonOutputStream = new PrintStream(jsonOutputFile)) {
-            TesterLauncher launcher = new TesterLauncher(
-                TEST_PACKAGE, jsonOutputStream, System.err);
-            launcher.runTests(testClassName);
-            launcher.printZucchiniJsonSummary();
+    private static int zucchiniRun(String testClassName) {
+        TesterLauncher launcher = new TesterLauncher(
+            TEST_PACKAGE, System.out, System.err);
+        launcher.runTests(testClassName);
+        launcher.printZucchiniJsonSummary();
 
-            // Don't confuse zucchini backend by returning nonzero exit
-            // code, even if some tests fail
-            return 0;
-        } catch (FileNotFoundException err) {
-            err.printStackTrace();
-            return 1;
-        }
+        // Don't confuse zucchini backend by returning nonzero exit
+        // code, even if some tests fail
+        return 0;
     }
 
     private TesterLauncher(String pkg, PrintStream out, PrintStream err) {
