@@ -278,10 +278,38 @@ You can see the finished product at
 Zucchini Support
 ----------------
 
-No [zucchini][6] backend exists yet, but the launcher supports creating
-Zucchini-friendly JSON if you run:
+A [zucchini][6] backend exists, [`CircuitSimGrader`][7], which reads the
+JSON printed to stdout for
 
-    java -jar hwX-tester.jar --zucchini results.json FsmTests
+    java -jar hwX-tester.jar --zucchini FsmTests
+
+given some test `FsmTests`. Each subcircuit you want to test (aka each
+test class) should correspond to a different assignment component, and
+each test method is a part of that component. Here's a `zucchini.yml`
+for the FSM example above:
+
+```yaml
+name: Homework X
+author: Austin Adams
+components:
+- name: Finite State Machine
+  weight: 1
+  backend: CircuitSimGrader
+  backend-options:
+    grader-jar: hwX-tester.jar
+    test-class: FsmTests
+  files: [fsm.sim]
+  grading-files: [hwX-tester.jar]
+  parts:
+  - {test: clockConnected,  weight: 1}
+  - {test: resetConnected,  weight: 1}
+  - {test: enableConnected, weight: 1}
+  - {test: outputA,         weight: 5}
+  - {test: transition,      weight: 10}
+```
+
+Note that since `hwX-tester.jar` is in `grading-files`, it'll need to be
+in `grading-files/` in the zucchini assignment repository.
 
 [1]: https://github.com/ra4king/CircuitSim
 [2]: https://ausbin.github.io/circuitsim-grader-template/edu/gatech/cs2110/circuitsim/api/Subcircuit.html#fromPath(java.lang.String,java.lang.String)
@@ -289,3 +317,4 @@ Zucchini-friendly JSON if you run:
 [4]: https://ausbin.github.io/circuitsim-grader-template/edu/gatech/cs2110/circuitsim/api/MockRegister.html#getQ()
 [5]: https://ausbin.github.io/circuitsim-grader-template/edu/gatech/cs2110/circuitsim/api/MockRegister.html#getD()
 [6]: https://github.com/zucchini/zucchini
+[7]: https://github.com/zucchini/zucchini/blob/master/zucchini/graders/circuitsim_grader.py
