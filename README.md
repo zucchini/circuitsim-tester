@@ -275,6 +275,74 @@ arbitrary value just like any other input pin.
 You can see the finished product at
 `src/main/java/edu/gatech/cs2110/circuitsim/tests/FsmTests.java`.
 
+
+Caveats
+-------
+
+Because CircuitSim is a JavaFX application and this tester simply runs
+CircuitSim, this tester tries to attach to a display — like an X11
+`$DISPLAY` on GNU/Linux. If you want to run this grader in a headless
+environment, you can get around this by standing up a dummy X11 server.
+
+For GNU/Linux, [zucchini][6] installs `xf86-video-dummy` and then uses
+the following `run_graphical.sh`:
+
+```bash
+#!/bin/bash
+cat >xorg.conf <<'EOF'
+# This xorg configuration file is meant to be used by xpra
+# to start a dummy X11 server.
+# For details, please see:
+# https://xpra.org/Xdummy.html
+Section "ServerFlags"
+  Option "DontVTSwitch" "true"
+  Option "AllowMouseOpenFail" "true"
+  Option "PciForceNone" "true"
+  Option "AutoEnableDevices" "false"
+  Option "AutoAddDevices" "false"
+EndSection
+Section "Device"
+  Identifier "dummy_videocard"
+  Driver "dummy"
+  Option "ConstantDPI" "true"
+  VideoRam 192000
+EndSection
+Section "Monitor"
+  Identifier "dummy_monitor"
+  HorizSync   5.0 - 1000.0
+  VertRefresh 5.0 - 200.0
+  Modeline "1024x768" 18.71 1024 1056 1120 1152 768 786 789 807
+EndSection
+Section "Screen"
+  Identifier "dummy_screen"
+  Device "dummy_videocard"
+  Monitor "dummy_monitor"
+  DefaultDepth 24
+  SubSection "Display"
+    Viewport 0 0
+    Depth 24
+    Modes "1024x768"
+    Virtual 1024 768
+  EndSubSection
+EndSection
+EOF
+/usr/lib/xorg/Xorg -noreset -logfile ./xorg.log -config ./xorg.conf :69 \
+    >/dev/null 2>&1 &
+xorg_pid=$!
+export DISPLAY=:69
+"$@"
+exitcode=$?
+kill "$xorg_pid" || {
+    printf 'did not kill Xorg!\n' >&2
+    exit 1
+}
+exit $exitcode
+```
+
+which allows you to say `./run_graphical.sh java -jar hwX-tester.jar` on
+a headless system.
+
+
 Zucchini Support
 ----------------
 
