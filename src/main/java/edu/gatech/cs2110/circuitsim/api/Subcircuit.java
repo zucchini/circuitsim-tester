@@ -157,12 +157,12 @@ public class Subcircuit {
 
         if (matchingCircuits.size() == 0) {
             throw new IllegalArgumentException(String.format(
-                "No subcircuits match the name `%s'." +
+                "No subcircuits match the name `%s'. " +
                 "Please double-check the names of all your subcircuits.",
                 subcircuitName));
         } else if (matchingCircuits.size() > 1) {
             throw new IllegalArgumentException(String.format(
-                "More than one subcircuit has the name `%s'." +
+                "More than one subcircuit has the name `%s'. " +
                 "Can't continue deterministically.",
                 subcircuitName));
         }
