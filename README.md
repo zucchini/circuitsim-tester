@@ -26,8 +26,8 @@ Getting Started
 
 To make your own CircuitSim autograder:
 
- 1. Clone this repository, probably replacing this README with your own
-    and deleting the generated javadoc in `docs/`
+ 1. Clone this repository, probably running `rm -r README.md docs/ *.sim`
+    and writing a new `README.md`
  2. Edit the project name in `gradle.properties`
  3. Write some tests in `src/main/java/edu/gatech/cs2110/circuitsim/tests/`
  4. Test with `./gradlew run` and generate `build/libs/hwX-tester.jar`
