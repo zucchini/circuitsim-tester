@@ -57,7 +57,7 @@ jar {
 
 javadoc {
     title 'CircuitSim Autograder API'
-    include 'edu/gatech/cs2110/circuitsim/api/*'
+    include 'edu/gatech/cs2110/circuitsim/api/*', 'edu/gatech/cs2110/circuitsim/extension/*'
     // For github pages
     destinationDir = file('docs')
     options.addBooleanOption 'html5', true

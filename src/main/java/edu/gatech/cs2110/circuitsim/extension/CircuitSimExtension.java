@@ -21,6 +21,13 @@ import edu.gatech.cs2110.circuitsim.api.SubcircuitPin;
 import edu.gatech.cs2110.circuitsim.api.SubcircuitRegister;
 import edu.gatech.cs2110.circuitsim.api.SubcircuitTest;
 
+/**
+ * Extends JUnit to understand testing CircuitSim subcircuits.
+ * <p>
+ * To use: annotate a JUnit test class with {@code  @ExtendWith(CircuitSimExtension.class)}
+ *
+ * @see <a href="https://github.com/ausbin/circuitsim-grader-template/blob/master/README.md">The README with examples</a>
+ */
 public class CircuitSimExtension implements Extension, BeforeAllCallback, BeforeEachCallback {
     private List<FieldInjection> fieldInjections;
     private Subcircuit subcircuit;
