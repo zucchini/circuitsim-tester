@@ -244,56 +244,11 @@ public class Subcircuit {
 
         // Run a depth-first search through the simulation DAG starting
         // at this subcircuit
-        Set<String> visitedSubcircuits = new HashSet<>();
-        Set<String> matchingComponents = new HashSet<>();
-        lookupComponentsDfs(classNames, goalCategories, goalComponents,
-                            circuitBoard, visitedSubcircuits,
-                            matchingComponents, inverse);
-        return matchingComponents;
+        ComponentDFS dfs = new ComponentDFS(
+            classNames, goalCategories, goalComponents, inverse);
+        return dfs.run(circuitBoard);
     }
 
-    private void lookupComponentsDfs(
-            Map<Class<? extends ComponentPeer<?>>, Pair<String, String>> classNames,
-            Set<String> goalCategories,
-            Set<String> goalComponents,
-            CircuitBoard circuitBoard,
-            Set<String> visitedSubcircuits,
-            Set<String> matchingComponents,
-            boolean inverse) {
-        for (ComponentPeer<?> component : circuitBoard.getComponents()) {
-            if (component instanceof SubcircuitPeer) {
-                SubcircuitPeer subcircuitPeer = (SubcircuitPeer) component;
-                String subcircuitName = subcircuitPeer.getProperties()
-                                                      .getProperty(SubcircuitPeer.SUBCIRCUIT)
-                                                      .getStringValue();
-                if (!visitedSubcircuits.contains(subcircuitName)) {
-                    visitedSubcircuits.add(subcircuitName);
-
-                    CircuitManager childCircuitManager = (CircuitManager)(
-                        subcircuitPeer.getProperties()
-                                      .getValue(SubcircuitPeer.SUBCIRCUIT));
-                    CircuitBoard childCircuitBoard = childCircuitManager.getCircuitBoard();
-                    lookupComponentsDfs(classNames, goalCategories,
-                                        goalComponents, childCircuitBoard,
-                                        visitedSubcircuits,
-                                        matchingComponents, inverse);
-                }
-            } else {
-                Pair<String, String> name = classNames.get(component.getClass());
-
-                if (name == null) {
-                    throw new IllegalStateException(String.format(
-                        "Unknown component %s", component.getClass()));
-                }
-
-                boolean match = goalCategories.contains(name.getKey()) ||
-                                goalComponents.contains(name.getValue());
-                if (match ^ inverse) {
-                    matchingComponents.add(name.getValue());
-                }
-            }
-        }
-    }
 
     /**
      * Finds a Pin component labelled {@code pinLabel} in this
@@ -452,5 +407,65 @@ public class Subcircuit {
         originallyConnectedPorts.stream().forEach(newPort::linkPort);
 
         return mockPin;
+    }
+
+    private static class ComponentDFS {
+        private Map<Class<? extends ComponentPeer<?>>, Pair<String, String>> classNames;
+        private Set<String> goalCategories;
+        private Set<String> goalComponents;
+        private boolean inverse;
+        private Set<String> visitedSubcircuits;
+        private Set<String> matchingComponents;
+
+        public ComponentDFS (
+                Map<Class<? extends ComponentPeer<?>>, Pair<String, String>> classNames,
+                Set<String> goalCategories,
+                Set<String> goalComponents,
+                boolean inverse) {
+            this.classNames = classNames;
+            this.goalCategories = goalCategories;
+            this.goalComponents = goalComponents;
+            this.inverse = inverse;
+        }
+
+        public Set<String> run(CircuitBoard circuitBoard) {
+            visitedSubcircuits = new HashSet<>();
+            matchingComponents = new HashSet<>();
+            lookupComponentsDfs(circuitBoard);
+            return matchingComponents;
+        }
+
+        private void lookupComponentsDfs(CircuitBoard circuitBoard) {
+            for (ComponentPeer<?> component : circuitBoard.getComponents()) {
+                if (component instanceof SubcircuitPeer) {
+                    SubcircuitPeer subcircuitPeer = (SubcircuitPeer) component;
+                    String subcircuitName = subcircuitPeer.getProperties()
+                                                          .getProperty(SubcircuitPeer.SUBCIRCUIT)
+                                                          .getStringValue();
+                    if (!visitedSubcircuits.contains(subcircuitName)) {
+                        visitedSubcircuits.add(subcircuitName);
+
+                        CircuitManager childCircuitManager = (CircuitManager)(
+                            subcircuitPeer.getProperties()
+                                          .getValue(SubcircuitPeer.SUBCIRCUIT));
+                        CircuitBoard childCircuitBoard = childCircuitManager.getCircuitBoard();
+                        lookupComponentsDfs(childCircuitBoard);
+                    }
+                } else {
+                    Pair<String, String> name = classNames.get(component.getClass());
+
+                    if (name == null) {
+                        throw new IllegalStateException(String.format(
+                            "Unknown component %s", component.getClass()));
+                    }
+
+                    boolean match = goalCategories.contains(name.getKey()) ||
+                                    goalComponents.contains(name.getValue());
+                    if (match ^ inverse) {
+                        matchingComponents.add(name.getValue());
+                    }
+                }
+            }
+        }
     }
 }
