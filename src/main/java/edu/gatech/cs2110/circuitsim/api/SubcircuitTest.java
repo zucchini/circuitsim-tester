@@ -28,4 +28,29 @@ public @interface SubcircuitTest {
      * @see Subcircuit#fromPath(String,String)
      */
     String subcircuit();
+
+    /**
+     * Fail the whole test if the subcircuit contains any of these components
+     * or component categories.
+     * Mutually exclusive with {@link #whitelistedComponents()}.
+     *
+     * @return list of banned component names or component category names
+     */
+    String[] blacklistedComponents() default {};
+
+    /**
+     * Fail the whole test if the subcircuit contains any components other than
+     * these components or categories.
+     * Mutually exclusive with {@link #blacklistedComponents()}.
+     * <p>
+     * This feature has no common sense, so to speak. Subcircuit components are
+     * always allowed, but other components will be allowed only if you specify
+     * them here, including Wiring components. Please consider starting off with
+     * {@code whitelistedComponents={"Input Pin", "Output Pin", "Constant", "Probe", "Splitter", "Tunnel"}}
+     * (or if you're okay with transistors, {@code whitelistedComponents={"Wiring"}} is shorter)
+     * at the minimum, or you will risk frustrating students.
+     *
+     * @return list of required component names or component category names
+     */
+    String[] whitelistedComponents() default {};
 }

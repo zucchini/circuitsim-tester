@@ -25,7 +25,8 @@ import edu.gatech.cs2110.circuitsim.extension.BasesConverter;
 
 @DisplayName("Toy ALU")
 @ExtendWith(CircuitSimExtension.class)
-@SubcircuitTest(file="toy-alu.sim", subcircuit="ALU")
+@SubcircuitTest(file="toy-alu.sim", subcircuit="ALU",
+                whitelistedComponents={"XOR", "Input Pin", "Constant", "NOT", "Mux", "Adder", "Output Pin"})
 public class ToyALUTests {
     @SubcircuitPin(bits=4)
     private InputPin a;

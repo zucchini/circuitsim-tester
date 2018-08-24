@@ -2,13 +2,20 @@ package edu.gatech.cs2110.circuitsim.api;
 
 import java.io.File;
 import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
+import javafx.util.Pair;
 
 import com.ra4king.circuitsim.gui.CircuitBoard;
+import com.ra4king.circuitsim.gui.CircuitManager;
 import com.ra4king.circuitsim.gui.CircuitSim;
+import com.ra4king.circuitsim.gui.ComponentManager;
+import com.ra4king.circuitsim.gui.ComponentPeer;
+import com.ra4king.circuitsim.gui.peers.SubcircuitPeer;
 import com.ra4king.circuitsim.gui.peers.memory.RegisterPeer;
 import com.ra4king.circuitsim.gui.peers.wiring.PinPeer;
 import com.ra4king.circuitsim.gui.peers.wiring.PinPeer;
@@ -33,12 +40,25 @@ import com.ra4king.circuitsim.simulator.Simulator;
  * for you.
  */
 public class Subcircuit {
+    private String name;
     private CircuitSim circuitSim;
     private CircuitBoard circuitBoard;
 
-    private Subcircuit(CircuitSim circuitSim, CircuitBoard circuitBoard) {
+    private Subcircuit(String name, CircuitSim circuitSim, CircuitBoard circuitBoard) {
+        this.name = name;
         this.circuitSim = circuitSim;
         this.circuitBoard = circuitBoard;
+    }
+
+    /**
+     * Returns the name of this subcircuit as written in the test file.
+     *
+     * @return a {@code String} holding the subcircuit name. Not
+     * normalized, so represents exactly what the test file specified.
+     * @see fromPath for information on subcircuit name normalization
+     */
+    public String getName() {
+        return name;
     }
 
     /**
@@ -140,7 +160,7 @@ public class Subcircuit {
 
         CircuitBoard circuitBoard = lookupSubcircuit(circuitSim, subcircuitName);
 
-        return new Subcircuit(circuitSim, circuitBoard);
+        return new Subcircuit(subcircuitName, circuitSim, circuitBoard);
     }
 
     private static String canonicalName(String name) {
@@ -178,6 +198,101 @@ public class Subcircuit {
      */
     public void resetSimulation() {
         circuitSim.getSimulator().reset();
+    }
+
+    /**
+     * Finds if components with the given names or in the given component
+     * categories exist in this subcircuit.
+     *
+     * @param  componentNames an iterable of component names, component
+     *                        category names, or some mixture
+     * @param  inverse true if you want to invert the search, else false
+     * @return a set of distinct component names matching the given
+     *         criteria
+     */
+    public Set<String> lookupComponents(Collection<String> componentNames,
+                                         boolean inverse) {
+        // The category/component names are buried in some semi-internal
+        // CircuitSim data structures, so pull them out and make more
+        // efficient ways to access them
+        Set<String> categoryNamesKnown = new HashSet<>();
+        Set<String> componentNamesKnown = new HashSet<>();
+        Map<Class<? extends ComponentPeer<?>>, Pair<String, String>> classNames =
+            new HashMap<>();
+        circuitSim.getComponentManager().forEach((ComponentManager.ComponentLauncherInfo info) -> {
+            categoryNamesKnown.add(info.name.getKey());
+            componentNamesKnown.add(info.name.getValue());
+            classNames.put(info.clazz, info.name);
+        });
+
+        // Split the set of names into a set of component names and a
+        // set of category names
+        Set<String> components = new HashSet<>(componentNames);
+        Set<String> goalCategories = new HashSet<>(components);
+        goalCategories.retainAll(categoryNamesKnown);
+        Set<String> goalComponents = new HashSet<>(components);
+        goalComponents.retainAll(componentNamesKnown);
+
+        // Look for bogus entries in the list passed by the programmer
+        components.removeAll(goalCategories);
+        components.removeAll(goalComponents);
+        if (!components.isEmpty()) {
+            throw new IllegalArgumentException(String.format(
+                "Unknown component/category names: %s",
+                String.join(", ", components)));
+        }
+
+        // Run a depth-first search through the simulation DAG starting
+        // at this subcircuit
+        Set<String> visitedSubcircuits = new HashSet<>();
+        Set<String> matchingComponents = new HashSet<>();
+        lookupComponentsDfs(classNames, goalCategories, goalComponents,
+                            circuitBoard, visitedSubcircuits,
+                            matchingComponents, inverse);
+        return matchingComponents;
+    }
+
+    private void lookupComponentsDfs(
+            Map<Class<? extends ComponentPeer<?>>, Pair<String, String>> classNames,
+            Set<String> goalCategories,
+            Set<String> goalComponents,
+            CircuitBoard circuitBoard,
+            Set<String> visitedSubcircuits,
+            Set<String> matchingComponents,
+            boolean inverse) {
+        for (ComponentPeer<?> component : circuitBoard.getComponents()) {
+            if (component instanceof SubcircuitPeer) {
+                SubcircuitPeer subcircuitPeer = (SubcircuitPeer) component;
+                String subcircuitName = subcircuitPeer.getProperties()
+                                                      .getProperty(SubcircuitPeer.SUBCIRCUIT)
+                                                      .getStringValue();
+                if (!visitedSubcircuits.contains(subcircuitName)) {
+                    visitedSubcircuits.add(subcircuitName);
+
+                    CircuitManager childCircuitManager = (CircuitManager)(
+                        subcircuitPeer.getProperties()
+                                      .getValue(SubcircuitPeer.SUBCIRCUIT));
+                    CircuitBoard childCircuitBoard = childCircuitManager.getCircuitBoard();
+                    lookupComponentsDfs(classNames, goalCategories,
+                                        goalComponents, childCircuitBoard,
+                                        visitedSubcircuits,
+                                        matchingComponents, inverse);
+                }
+            } else {
+                Pair<String, String> name = classNames.get(component.getClass());
+
+                if (name == null) {
+                    throw new IllegalStateException(String.format(
+                        "Unknown component %s", component.getClass()));
+                }
+
+                boolean match = goalCategories.contains(name.getKey()) ||
+                                goalComponents.contains(name.getValue());
+                if (match ^ inverse) {
+                    matchingComponents.add(name.getValue());
+                }
+            }
+        }
     }
 
     /**

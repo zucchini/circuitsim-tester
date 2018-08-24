@@ -5,6 +5,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.junit.jupiter.api.extension.BeforeAllCallback;
@@ -44,6 +45,7 @@ public class CircuitSimExtension implements Extension, BeforeAllCallback, Before
 
         subcircuit = Subcircuit.fromPath(subcircuitAnnotation.file(),
                                          subcircuitAnnotation.subcircuit());
+        checkForBannedComponents(subcircuitAnnotation);
         fieldInjections = new LinkedList<>();
         fieldInjections.addAll(generatePinFieldInjections(testClass));
         fieldInjections.addAll(generateRegFieldInjections(testClass));
@@ -57,6 +59,47 @@ public class CircuitSimExtension implements Extension, BeforeAllCallback, Before
         // Do simple dependency injection
         for (FieldInjection fieldInjection : fieldInjections) {
             fieldInjection.inject(extensionContext.getRequiredTestInstance());
+        }
+    }
+
+    private void checkForBannedComponents(SubcircuitTest subcircuitAnnotation) {
+        boolean hasComponentBlacklist =
+            subcircuitAnnotation.blacklistedComponents().length > 0;
+        boolean hasComponentWhitelist =
+            subcircuitAnnotation.whitelistedComponents().length > 0;
+
+        if (hasComponentBlacklist && hasComponentWhitelist) {
+            throw new IllegalArgumentException(
+                "blacklistedComponents and whitelistedComponents are mutually exclusive");
+        }
+
+        if (hasComponentBlacklist || hasComponentWhitelist) {
+            List<String> restrictedComponents = new LinkedList<>(Arrays.asList(
+                hasComponentBlacklist? subcircuitAnnotation.blacklistedComponents()
+                                     : subcircuitAnnotation.whitelistedComponents()));
+
+            // These should always be included, but TAs might not think to
+            // include them.
+            if (hasComponentWhitelist) {
+                restrictedComponents.add("Input Pin");
+                restrictedComponents.add("Output Pin");
+                restrictedComponents.add("Constant");
+                restrictedComponents.add("Tunnel");
+            }
+
+            Set<String> violatingComponentNames =
+                subcircuit.lookupComponents(restrictedComponents,
+                                            hasComponentWhitelist);
+
+            if (!violatingComponentNames.isEmpty()) {
+                throw new IllegalArgumentException(String.format(
+                    "The subcircuit `%s' contains banned components: %s. It " +
+                    "could contain these banned components indirectly; double-check " +
+                    "subcircuits placed in it as well.",
+                    subcircuit.getName(),
+                    violatingComponentNames.stream().map(name -> String.format("`%s'", name))
+                                           .collect(Collectors.joining(", "))));
+            }
         }
     }
 
