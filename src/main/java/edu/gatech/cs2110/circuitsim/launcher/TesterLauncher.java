@@ -17,6 +17,7 @@ import org.junit.platform.launcher.core.LauncherDiscoveryRequestBuilder;
 
 public class TesterLauncher {
     private static final String TEST_PACKAGE = "edu.gatech.cs2110.circuitsim.tests";
+    private static final int MAX_FAILURES = 8;
     private String pkg;
     private SortedSet<TestClassResult> results;
     private PrintStream out, err;
@@ -99,6 +100,8 @@ public class TesterLauncher {
                     continue;
                 }
 
+                int numFailedPrinted = 0;
+
                 for (TestMethodResult methodResult : classResult.getMethodResults()) {
                     if (methodResult.getResult().getStatus() != SUCCESSFUL) {
                         if (!printedSuite) {
@@ -107,6 +110,13 @@ public class TesterLauncher {
                         }
                         out.printf("\t[FAIL] %s: %s%n", methodResult.getId().getDisplayName(),
                                    methodResult.getResult().getThrowable().get().getMessage());
+
+                        if (++numFailedPrinted == MAX_FAILURES &&
+                                classResult.getNumFailed() > numFailedPrinted) {
+                            out.printf("\t[%d more failures omitted]%n",
+                                       classResult.getNumFailed() - numFailedPrinted);
+                            break;
+                        }
                     }
                 }
             }
@@ -125,10 +135,8 @@ public class TesterLauncher {
                 return false;
             }
 
-            for (TestMethodResult methodResult : classResult.getMethodResults()) {
-                if (methodResult.getResult().getStatus() != SUCCESSFUL) {
-                    return false;
-                }
+            if (classResult.getNumFailed() > 0) {
+                return false;
             }
         }
 

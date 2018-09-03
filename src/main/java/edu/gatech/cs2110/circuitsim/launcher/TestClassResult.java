@@ -1,5 +1,7 @@
 package edu.gatech.cs2110.circuitsim.launcher;
 
+import static org.junit.platform.engine.TestExecutionResult.Status.SUCCESSFUL;
+
 import java.util.Collection;
 import java.util.SortedSet;
 import java.util.TreeSet;
@@ -13,6 +15,7 @@ public class TestClassResult implements Comparable<TestClassResult> {
     private ClassSource source;
     private TestExecutionResult result;
     private SortedSet<TestMethodResult> methodResults;
+    private int numFailed;
 
     public TestClassResult(TestIdentifier id,
                            ClassSource source,
@@ -21,6 +24,7 @@ public class TestClassResult implements Comparable<TestClassResult> {
         this.source = source;
         this.result = result;
         this.methodResults = new TreeSet<>();
+        this.numFailed = 0;
     }
 
     public TestIdentifier getId() { return id; }
@@ -34,6 +38,14 @@ public class TestClassResult implements Comparable<TestClassResult> {
     }
 
     public boolean addMethodResult(TestMethodResult methodResult) {
+        if (methodResult.getResult().getStatus() != SUCCESSFUL) {
+            numFailed++;
+        }
+
         return methodResults.add(methodResult);
+    }
+
+    public int getNumFailed() {
+        return numFailed;
     }
 }
