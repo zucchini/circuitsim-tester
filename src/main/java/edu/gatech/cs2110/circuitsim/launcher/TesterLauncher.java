@@ -126,7 +126,7 @@ public class TesterLauncher {
     public void printZucchiniJsonSummary() {
         // Only ran one class so should be just one TestClassResult
         TestClassResult classResult = results.stream().findFirst().get();
-        new ZucchiniJson().printResultsAsJson(classResult, out);
+        new ZucchiniJson(MAX_FAILURES).printResultsAsJson(classResult, out);
     }
 
     private boolean wasSuccessful() {

@@ -11,10 +11,12 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
 public class ZucchiniJson {
+    private int maxFailuresPerTest;
     private Gson gson;
 
-    public ZucchiniJson() {
-        gson = new GsonBuilder().setPrettyPrinting().create();
+    public ZucchiniJson(int maxFailuresPerTest) {
+        this.maxFailuresPerTest = maxFailuresPerTest;
+        this.gson = new GsonBuilder().setPrettyPrinting().create();
     }
 
     public void printResultsAsJson(TestClassResult classResult, Appendable out) {
@@ -24,16 +26,40 @@ public class ZucchiniJson {
         // Zucchini treats an error as a 0, so don't bother writing test
         // results unless there were no errors.
         if (success) {
-            root = new ZucchiniJsonRoot(
-                classResult.getMethodResults().stream()
-                                              .map(ZucchiniJsonMethod::fromMethodResult)
-                                              .collect(Collectors.toList()));
+            root = new ZucchiniJsonRoot(collapseMethodResults(
+                classResult.getMethodResults()));
         } else {
             root = new ZucchiniJsonRoot(
                 classResult.getResult().getThrowable().get().getMessage());
         }
 
         gson.toJson(root, out);
+    }
+
+    // Assumes results is sorted by method name
+    private List<ZucchiniJsonMethod> collapseMethodResults(
+            Collection<TestMethodResult> results) {
+        List<ZucchiniJsonMethod> collapsed = new LinkedList<>();
+
+        for (TestMethodResult result : results) {
+            String methodName = result.getSource().getMethodName();
+            ZucchiniJsonMethod tail;
+            if (collapsed.isEmpty() ||
+                    !(tail = collapsed.get(collapsed.size() - 1)).methodName
+                                                                 .equals(methodName)) {
+                // Time to start a new methodresult
+                collapsed.add(tail = new ZucchiniJsonMethod(methodName));
+            }
+
+            tail.total++;
+            if (result.getResult().getStatus() != SUCCESSFUL &&
+                    ++tail.failed <= maxFailuresPerTest) {
+                tail.partialFailures.add(
+                    ZucchiniJsonMethodFailure.fromMethodResult(result));
+            }
+        }
+
+        return collapsed;
     }
 
     private static class ZucchiniJsonRoot {
@@ -54,26 +80,33 @@ public class ZucchiniJson {
     }
 
     private static class ZucchiniJsonMethod {
-        private String displayName;
         private String methodName;
-        private boolean passed;
+        private int failed;
+        private int total;
+        private List<ZucchiniJsonMethodFailure> partialFailures;
+
+        public ZucchiniJsonMethod(String methodName) {
+            this.methodName = methodName;
+            this.failed = 0;
+            this.total = 0;
+            this.partialFailures = new LinkedList<>();
+        }
+    }
+
+    private static class ZucchiniJsonMethodFailure {
+        private String displayName;
         private String message;
 
-        public ZucchiniJsonMethod(String displayName, String methodName,
-                                  boolean passed, String message) {
+        public ZucchiniJsonMethodFailure(String displayName, String message) {
             this.displayName = displayName;
-            this.methodName = methodName;
-            this.passed = passed;
             this.message = message;
         }
 
-        public static ZucchiniJsonMethod fromMethodResult(TestMethodResult methodResult) {
-            boolean passed = methodResult.getResult().getStatus() == SUCCESSFUL;
-            String message = methodResult.getResult().getThrowable().map(err -> err.getMessage())
-                                                                    .orElse(null);
-            return new ZucchiniJsonMethod(methodResult.getId().getDisplayName(),
-                                          methodResult.getSource().getMethodName(),
-                                          passed, message);
+        public static ZucchiniJsonMethodFailure fromMethodResult(TestMethodResult result) {
+            String displayName = result.getId().getDisplayName();
+            String message = result.getResult().getThrowable().map(err -> err.getMessage())
+                                                              .orElse(null);
+            return new ZucchiniJsonMethodFailure(displayName, message);
         }
     }
 }
