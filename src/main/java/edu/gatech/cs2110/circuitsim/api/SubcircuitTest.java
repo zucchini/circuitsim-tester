@@ -53,4 +53,16 @@ public @interface SubcircuitTest {
      * @return list of required component names or component category names
      */
     String[] whitelistedComponents() default {};
+
+    /**
+     * Reset simulation between tests.
+     * <p>
+     * Defaults to false because of possible performance (OOM) issues
+     * with this behavior.
+     *
+     * @return true if the simulation should be reset before each test,
+     *         false if the simulation should never be reset
+     * @see Subcircuit#resetSimulation()
+     */
+    boolean resetSimulationBetween() default false;
 }

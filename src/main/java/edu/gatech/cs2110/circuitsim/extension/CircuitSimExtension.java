@@ -30,8 +30,9 @@ import edu.gatech.cs2110.circuitsim.api.SubcircuitTest;
  * @see <a href="https://github.com/ausbin/circuitsim-grader-template/blob/master/README.md">The README with examples</a>
  */
 public class CircuitSimExtension implements Extension, BeforeAllCallback, BeforeEachCallback {
-    private List<FieldInjection> fieldInjections;
+    private boolean resetSimulationBetween;
     private Subcircuit subcircuit;
+    private List<FieldInjection> fieldInjections;
 
     @Override
     public void beforeAll(ExtensionContext context) throws Exception {
@@ -43,6 +44,7 @@ public class CircuitSimExtension implements Extension, BeforeAllCallback, Before
                 "The CircuitSim extension requires annotating the test class with @SubcircuitTest");
         }
 
+        resetSimulationBetween = subcircuitAnnotation.resetSimulationBetween();
         subcircuit = Subcircuit.fromPath(subcircuitAnnotation.file(),
                                          subcircuitAnnotation.subcircuit());
         checkForBannedComponents(subcircuitAnnotation);
@@ -54,7 +56,9 @@ public class CircuitSimExtension implements Extension, BeforeAllCallback, Before
     @Override
     public void beforeEach(ExtensionContext extensionContext) throws Exception {
         // Reset simulator before each test
-        subcircuit.resetSimulation();
+        if (resetSimulationBetween) {
+            subcircuit.resetSimulation();
+        }
 
         // Do simple dependency injection
         for (FieldInjection fieldInjection : fieldInjections) {
