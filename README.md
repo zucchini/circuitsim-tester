@@ -170,17 +170,12 @@ gate component. Then we can change the `@SubcircuitTest` annotation as follows:
                 blacklistedComponents={"XOR"})
 ```
 
-You can write either components or component categories, like "Wiring." There
-is also a complementary but mutually exclusive flag, `whitelistedComponents`,
-which sets the only components allowed. But as the Javadoc warns,
-
-> [`whitelistedComponents`] has no common sense, so to speak. Subcircuit
-> components are always allowed, but other components will be allowed only if
-> you specify them here, including Wiring components. Please consider starting
-> off with
-> `whitelistedComponents={"Input Pin", "Output Pin", "Constant", "Probe", "Splitter", "Tunnel"}`
-> (or if you're okay with transistors, `whitelistedComponents={"Wiring"}` is
-> shorter) at the minimum, or you will risk frustrating students.
+You can write either components or component categories, like "Wiring."
+There is also a complementary but mutually exclusive flag,
+`whitelistedComponents`, which sets the only components allowed. To
+avoid code duplication, it allows Input Pins, Output Pins, Constants,
+and Tunnels automatically. But I would go ahead and write
+`whitelistedComponents={"Wiring"}` so they can use probes, for example.
 
 #### Testing sequential logic
 
