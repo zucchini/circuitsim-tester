@@ -18,6 +18,8 @@ import org.junit.jupiter.params.provider.MethodSource;
 
 import edu.gatech.cs2110.circuitsim.api.InputPin;
 import edu.gatech.cs2110.circuitsim.api.OutputPin;
+import edu.gatech.cs2110.circuitsim.api.Restrictor;
+import edu.gatech.cs2110.circuitsim.api.Subcircuit;
 import edu.gatech.cs2110.circuitsim.api.SubcircuitPin;
 import edu.gatech.cs2110.circuitsim.api.SubcircuitTest;
 import edu.gatech.cs2110.circuitsim.extension.CircuitSimExtension;
@@ -26,8 +28,15 @@ import edu.gatech.cs2110.circuitsim.extension.BasesConverter;
 @DisplayName("Toy ALU")
 @ExtendWith(CircuitSimExtension.class)
 @SubcircuitTest(file="toy-alu.sim", subcircuit="ALU",
-                blacklistedComponents={"XOR"})
+                restrictors={ToyALUTests.BannedGates.class})
 public class ToyALUTests {
+    public static class BannedGates extends Restrictor {
+        @Override
+        public void validate(Subcircuit subcircuit) throws AssertionError {
+            blacklistComponents(subcircuit, "XOR");
+        }
+    }
+
     @SubcircuitPin(bits=4)
     private InputPin a;
 

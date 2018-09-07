@@ -1,11 +1,11 @@
 package edu.gatech.cs2110.circuitsim.extension;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.junit.jupiter.api.extension.BeforeAllCallback;
@@ -17,6 +17,7 @@ import edu.gatech.cs2110.circuitsim.api.BasePin;
 import edu.gatech.cs2110.circuitsim.api.InputPin;
 import edu.gatech.cs2110.circuitsim.api.MockRegister;
 import edu.gatech.cs2110.circuitsim.api.OutputPin;
+import edu.gatech.cs2110.circuitsim.api.Restrictor;
 import edu.gatech.cs2110.circuitsim.api.Subcircuit;
 import edu.gatech.cs2110.circuitsim.api.SubcircuitPin;
 import edu.gatech.cs2110.circuitsim.api.SubcircuitRegister;
@@ -47,7 +48,11 @@ public class CircuitSimExtension implements Extension, BeforeAllCallback, Before
         resetSimulationBetween = subcircuitAnnotation.resetSimulationBetween();
         subcircuit = Subcircuit.fromPath(subcircuitAnnotation.file(),
                                          subcircuitAnnotation.subcircuit());
-        checkForBannedComponents(subcircuitAnnotation);
+
+        for (Class<? extends Restrictor> restrictor : subcircuitAnnotation.restrictors()) {
+            runRestrictor(subcircuit, restrictor);
+        }
+
         fieldInjections = new LinkedList<>();
         fieldInjections.addAll(generatePinFieldInjections(testClass));
         fieldInjections.addAll(generateRegFieldInjections(testClass));
@@ -66,46 +71,29 @@ public class CircuitSimExtension implements Extension, BeforeAllCallback, Before
         }
     }
 
-    private void checkForBannedComponents(SubcircuitTest subcircuitAnnotation) {
-        boolean hasComponentBlacklist =
-            subcircuitAnnotation.blacklistedComponents().length > 0;
-        boolean hasComponentWhitelist =
-            subcircuitAnnotation.whitelistedComponents().length > 0;
-
-        if (hasComponentBlacklist && hasComponentWhitelist) {
-            throw new IllegalArgumentException(
-                "blacklistedComponents and whitelistedComponents are mutually exclusive");
+    private void runRestrictor(
+            Subcircuit subcircuit, Class<? extends Restrictor> restrictorClass)
+            throws AssertionError {
+        Restrictor restrictor;
+        // Lord Gosling, thank you for this boilerplate, amen
+        try {
+            restrictor = restrictorClass.getConstructor().newInstance();
+        } catch (NoSuchMethodException err) {
+            throw new IllegalStateException(String.format(
+                "restrictor class %s needs a no-args constructor",
+                restrictorClass), err);
+        } catch (InstantiationException | IllegalAccessException | InvocationTargetException err) {
+            throw new IllegalStateException(String.format(
+                "could not instantiate restrictor class %s",
+                restrictorClass), err);
         }
 
-        if (hasComponentBlacklist || hasComponentWhitelist) {
-            List<String> restrictedComponents = new LinkedList<>(Arrays.asList(
-                hasComponentBlacklist? subcircuitAnnotation.blacklistedComponents()
-                                     : subcircuitAnnotation.whitelistedComponents()));
-
-            // These should always be included, but TAs might not think to
-            // include them.
-            if (hasComponentWhitelist) {
-                restrictedComponents.add("Input Pin");
-                restrictedComponents.add("Output Pin");
-                restrictedComponents.add("Constant");
-                restrictedComponents.add("Tunnel");
-                restrictedComponents.add("Text");
-                restrictedComponents.add("Probe");
-            }
-
-            Set<String> violatingComponentNames =
-                subcircuit.lookupComponents(restrictedComponents,
-                                            hasComponentWhitelist);
-
-            if (!violatingComponentNames.isEmpty()) {
-                throw new IllegalArgumentException(String.format(
-                    "The subcircuit `%s' contains banned components: %s. It " +
-                    "could contain these banned components indirectly; double-check " +
-                    "subcircuits placed in it as well.",
-                    subcircuit.getName(),
-                    violatingComponentNames.stream().map(name -> String.format("`%s'", name))
-                                           .collect(Collectors.joining(", "))));
-            }
+        try {
+            restrictor.validate(subcircuit);
+        } catch (AssertionError err) {
+            throw new AssertionError(String.format(
+                "validation error with subcircuit `%s': %s",
+                subcircuit.getName(), err.getMessage()), err);
         }
     }
 

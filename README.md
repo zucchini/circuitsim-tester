@@ -160,22 +160,35 @@ the same name as the test.
 You can see the finished product in
 `src/main/java/edu/gatech/cs2110/circuitsim/tests/ToyALU.java`.
 
-##### Banning components
+#### Restrictors (Banning Components)
 
-Suppose we wanted students to build the XOR themselves, without using a XOR
-gate component. Then we can change the `@SubcircuitTest` annotation as follows:
+Suppose in the previous example, we wanted students to build the XOR
+themselves, without using a XOR gate component. Then we can change the
+test as follows:
 
 ```java
+@DisplayName("Toy ALU")
+@ExtendWith(CircuitSimExtension.class)
 @SubcircuitTest(file="toy-alu.sim", subcircuit="ALU",
-                blacklistedComponents={"XOR"})
+                restrictors={ToyALUTests.BannedGates.class})
+public class ToyALUTests {
+    public static class BannedGates extends Restrictor {
+        @Override
+        public void validate(Subcircuit subcircuit) throws AssertionError {
+            blacklistComponents(subcircuit, "XOR");
+        }
+    }
+    // ...
 ```
 
-You can write either components or component categories, like "Wiring."
-There is also a complementary but mutually exclusive flag,
-`whitelistedComponents`, which sets the only components allowed. To
-avoid code duplication, it allows Input Pins, Output Pins, Constants,
-Tunnels, Probes, and Text automatically. But I would go ahead and write
-`whitelistedComponents={"Wiring"}` so they can use probes, for example.
+That is, we can provide `restrictors` to `@SubcircuitTest`. The fact
+that it's a class is useful for when you have a bunch of subcircuits
+with the same restrictions. In such a case, you can reduce code
+duplication by simply referencing the same `Restrictor` class in all of
+the tests.
+
+Consult [the Restrictor documentation][8] for more information on
+restrictions. There is also support for whitelists.
 
 #### Testing sequential logic
 
@@ -403,3 +416,4 @@ in `grading-files/` in the zucchini assignment repository.
 [5]: https://ausbin.github.io/circuitsim-grader-template/edu/gatech/cs2110/circuitsim/api/MockRegister.html#getD()
 [6]: https://github.com/zucchini/zucchini
 [7]: https://github.com/zucchini/zucchini/blob/master/zucchini/graders/circuitsim_grader.py
+[8]: https://ausbin.github.io/circuitsim-grader-template/edu/gatech/cs2110/circuitsim/api/Restrictor.html

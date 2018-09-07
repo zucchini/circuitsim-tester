@@ -29,30 +29,41 @@ public @interface SubcircuitTest {
      */
     String subcircuit();
 
-    /**
-     * Fail the whole test if the subcircuit contains any of these components
-     * or component categories.
-     * Mutually exclusive with {@link #whitelistedComponents()}.
-     *
-     * @return list of banned component names or component category names
-     */
-    String[] blacklistedComponents() default {};
 
     /**
-     * Fail the whole test if the subcircuit contains any components other than
-     * these components or categories.
-     * Mutually exclusive with {@link #blacklistedComponents()}.
+     * Validate the subcircuit with these {@link Restrictor}s before
+     * running any tests. Useful for checking for banned gates.
      * <p>
-     * Automatically includes Input Pins, Output Pins, Constants,
-     * Tunnels, Probes, and Text. But other components will be allowed only if
-     * you specify them here, including other Wiring components. Please
-     * consider starting off with {@code
-     * whitelistedComponents={"Wiring", "Text"}}, or you will risk
-     * frustrating students.
+     * The idiom is to subclass {@link Restrictor} inside your test
+     * class and then call {@link Restrictor} methods as needed inside
+     * its {@code validate()}, such as
+     * {@link Restrictor#whitelistComponents
+     * Restrictor.whitelistComponents()} or
+     * {@link Restrictor#blacklistComponents Restrictor.blacklistComponents()}
+     * as follows:
+     * <pre>
+     * {@literal @}DisplayName("Toy ALU")
+     * {@literal @}ExtendWith(CircuitSimExtension.class)
+     * {@literal @}SubcircuitTest(file="toy-alu.sim", subcircuit="ALU",
+     *                 restrictors={ToyALUTests.BannedGates.class})
+     * public class ToyALUTests {
+     *     public static class BannedGates extends Restrictor {
+     *         {@literal @}Override
+     *         public void validate(Subcircuit subcircuit) throws AssertionError {
+     *             blacklistComponents(subcircuit, "XOR");
+     *         }
+     *     }
      *
-     * @return list of required component names or component category names
+     *     // ...
+     * }
+     * </pre>
+     *
+     * The default is an empty array, so to perform no validation.
+     *
+     * @return restrictor classes to use to validate the subcircuit
+     * @see Restrictor
      */
-    String[] whitelistedComponents() default {};
+    Class<? extends Restrictor>[] restrictors() default {};
 
     /**
      * Reset simulation between tests.
