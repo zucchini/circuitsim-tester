@@ -124,3 +124,6 @@ modules.xml
 
 
 # End of https://www.gitignore.io/api/jetbrains+iml
+
+# Make an exception for circuitsim
+!CircuitSim*.jar
