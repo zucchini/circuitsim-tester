@@ -89,6 +89,8 @@ public class CircuitSimExtension implements Extension, BeforeAllCallback, Before
                 restrictedComponents.add("Output Pin");
                 restrictedComponents.add("Constant");
                 restrictedComponents.add("Tunnel");
+                restrictedComponents.add("Text");
+                restrictedComponents.add("Probe");
             }
 
             Set<String> violatingComponentNames =

@@ -43,12 +43,12 @@ public @interface SubcircuitTest {
      * these components or categories.
      * Mutually exclusive with {@link #blacklistedComponents()}.
      * <p>
-     * Automatically includes Input Pins, Output Pins, Constants, and
-     * Tunnels. always allowed. But other components will be allowed
-     * only if you specify them here, including other Wiring components.
-     * Please consider starting off with {@code
-     * whitelistedComponents={"Wiring"}}, or you will risk frustrating
-     * students.
+     * Automatically includes Input Pins, Output Pins, Constants,
+     * Tunnels, Probes, and Text. But other components will be allowed only if
+     * you specify them here, including other Wiring components. Please
+     * consider starting off with {@code
+     * whitelistedComponents={"Wiring", "Text"}}, or you will risk
+     * frustrating students.
      *
      * @return list of required component names or component category names
      */

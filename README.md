@@ -174,7 +174,7 @@ You can write either components or component categories, like "Wiring."
 There is also a complementary but mutually exclusive flag,
 `whitelistedComponents`, which sets the only components allowed. To
 avoid code duplication, it allows Input Pins, Output Pins, Constants,
-and Tunnels automatically. But I would go ahead and write
+Tunnels, Probes, and Text automatically. But I would go ahead and write
 `whitelistedComponents={"Wiring"}` so they can use probes, for example.
 
 #### Testing sequential logic
