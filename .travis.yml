@@ -1,5 +1,16 @@
 language: java
 jdk:
- - oraclejdk8
- - oraclejdk9
- - oraclejdk10
+- oraclejdk8
+- oraclejdk9
+- oraclejdk10
+deploy:
+  provider: packagecloud
+  repository: "circuitsim-grader"
+  username: "zucchini"
+  token:
+    secure: Gi4w0P6At1cFTouJldplL5zEMYfIPxzLJWkZ/VMJiL3+zuBO1yDwt9EK0LqQ2khjiVVTLy/5+RIZWYErBHfMOmRkC6oWZxJ3pKqBREwFHK9UpvoXIK0oanL0rAx5G+wY79bhSCPG6nRGktk4oofPQv8pKL/OKE/PCrNvq+nzBgQxkQlwSHLK81tvZZ94QCsjYsRbi1gv6VbaIcNmsl2FNu5e0UYQjb3E/4510Ny5zJ2dRn5EuogC8f/b1CqZ8ntoEZ7P3bSgxzILVG7+MID8c6EC0JgkIxM8ZvRqFFQevXQacOzgNdXFny48ZGYsnhYrSLU2TwmwefN+ffg6LBhLB9sAdK10aNMexwsESs7R1PQm0YDWR9BJlwGBM6zGxBz7wueA9lojLrEF5l6SiEC+Q21f83FXuPuwuNC6JkyqjXys1UhFKURtBHMHUbKkUchIdwI98BCJgHM5NaxqBK1PMo2ovxQan+vCcupQkb4HBsybza12Co4PScZRUyz49XngRJ+NKEiMUESrcjZ/h0cpTp/1KJzpF7p/pGnMJOoAvdc/lD+bbOaTVgrMX/j0s4bV53MQjdKUZK0ojIcsyrbDZZwKTiKse4bcwV94OQv/CURqoh7toIffDZJCB7qxVE1StdU0YKK++uzAjvdyKdBnTcr3CemoWldnFKjXp8/ollE=
+  skip_cleanup: true
+  on:
+    tags: true
+    local-dir: build/libs
+    package_glob: *.jar

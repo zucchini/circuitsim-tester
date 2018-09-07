@@ -16,44 +16,45 @@ import org.junit.platform.launcher.core.LauncherFactory;
 import org.junit.platform.launcher.core.LauncherDiscoveryRequestBuilder;
 
 public class TesterLauncher {
-    private static final String TEST_PACKAGE = "edu.gatech.cs2110.circuitsim.tests";
     private static final int MAX_FAILURES = 8;
     private String pkg;
     private SortedSet<TestClassResult> results;
     private PrintStream out, err;
 
     public static void main(String[] args) {
-        boolean student = args.length == 0;
-        boolean zucchini = args.length == 2 && args[0].equals("--zucchini");
+        boolean student = args.length == 1;
+        boolean zucchini = args.length == 3 && args[1].equals("--zucchini");
 
         if (!student && !zucchini) {
-            System.err.println("usage: java -jar tester.jar");
+            System.err.println("usage: java -jar tester.jar org.sample.test.package");
             System.err.println("           → run student tests");
-            System.err.println("       java -jar tester.jar --zucchini SomeTestClass");
+            System.err.println("       java -jar tester.jar org.sample.test.package --zucchini SomeTestClass");
             System.err.println("           → run and generate zucchini json for test SomeTestClass");
             System.exit(1);
             return;
         }
 
+        String testPackage = args[0];
+
         if (student) {
-            System.exit(studentRun());
+            System.exit(studentRun(testPackage));
         } else { // zucchini
             String testClassName = args[1];
-            System.exit(zucchiniRun(testClassName));
+            System.exit(zucchiniRun(testPackage, testClassName));
         }
     }
 
-    private static int studentRun() {
+    private static int studentRun(String testPackage) {
         TesterLauncher launcher = new TesterLauncher(
-            TEST_PACKAGE, System.out, System.err);
+                testPackage, System.out, System.err);
         launcher.runAllTests();
         launcher.printStudentSummary();
         return launcher.wasSuccessful()? 0 : 1;
     }
 
-    private static int zucchiniRun(String testClassName) {
+    private static int zucchiniRun(String testPackage, String testClassName) {
         TesterLauncher launcher = new TesterLauncher(
-            TEST_PACKAGE, System.out, System.err);
+                testPackage, System.out, System.err);
         launcher.runTests(testClassName);
         launcher.printZucchiniJsonSummary();
 
