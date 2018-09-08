@@ -3,7 +3,7 @@ jdk:
 - oraclejdk8
 - oraclejdk9
 - oraclejdk10
-before-deploy:
+before_deploy:
   - ./gradlew jar
 deploy:
   provider: packagecloud
