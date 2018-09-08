@@ -5,6 +5,7 @@ jdk:
 - oraclejdk10
 before_deploy:
   - ./gradlew jar
+skip_cleanup: true
 deploy:
   provider: packagecloud
   repository: "circuitsim-grader"
