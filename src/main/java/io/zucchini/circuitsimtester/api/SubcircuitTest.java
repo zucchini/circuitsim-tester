@@ -1,4 +1,4 @@
-package edu.gatech.cs2110.circuitsim.api;
+package io.zucchini.circuitsimtester.api;
 
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
 

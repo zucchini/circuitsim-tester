@@ -6,24 +6,44 @@
  * user guide available at https://docs.gradle.org/4.7/userguide/tutorial_java_projects.html
  */
 
+// In this section you declare where to find the dependencies of your project
 plugins {
     // Apply the java plugin to add support for Java
     id 'java'
 
-    // Apply the application plugin to add support for building an application
-    id 'application'
+    // For publishing to BinTray
+    id "com.jfrog.bintray" version "1.8.4"
+
+    // Produce maven packages for easy inclusion
+    id 'maven-publish'
+
+    id 'com.palantir.git-version' version "0.11.0"
 }
+
+group = 'io.zucchini.circuitsim-tester'
+version gitVersion()
 
 // Build for Java 8
 sourceCompatibility = '1.8'
 targetCompatibility = '1.8'
 
-// Define the main class for the application
-mainClassName = 'edu.gatech.cs2110.circuitsim.launcher.TesterLauncher'
+repositories {
+    // Use jcenter for resolving your dependencies.
+    // You can declare any Maven/Ivy/file repository here.
+    jcenter()
+
+    flatDir {
+        dirs '.'
+    }
+}
+
+configurations {
+    // configuration that holds jars to include in the jar
+    includedLibs
+}
 
 dependencies {
-    // Don't need to put gson in here since the CircuitSim jar already
-    // includes it
+    includedLibs ':CircuitSim1.7.4:'
     compile ':CircuitSim1.7.4:'
     compile 'org.junit.jupiter:junit-jupiter-api:5.2.0'
     compile 'org.junit.jupiter:junit-jupiter-params:5.2.0'
@@ -35,31 +55,74 @@ compileJava {
     options.compilerArgs << "-Xlint:unchecked" << "-Xlint:deprecation"
 }
 
-// In this section you declare where to find the dependencies of your project
-repositories {
-    // Use jcenter for resolving your dependencies.
-    // You can declare any Maven/Ivy/file repository here.
-    jcenter()
-
-    flatDir {
-        dirs '.'
-    }
-}
-
 jar {
     manifest {
-        attributes('Main-Class': mainClassName)
+        attributes('Main-Class': "io.zucchini.circuitsimtester.launcher.TesterLauncher")
     }
 
     // Include dependencies
-    from { configurations.testRuntime.collect { it.isDirectory() ? it : zipTree(it) } }
+    from { configurations.includedLibs.collect { it.isDirectory() ? it : zipTree(it) } }
 }
 
 javadoc {
     title 'CircuitSim Autograder API'
-    include 'edu/gatech/cs2110/circuitsim/api/*', 'edu/gatech/cs2110/circuitsim/extension/*'
+    include 'io/zucchini/circuitsim/grader/api/*', 'io/zucchini/circuitsim/grader/extension/*'
     // For github pages
     destinationDir = file('docs')
     options.addBooleanOption 'html5', true
     options.addStringOption  'link', 'https://docs.oracle.com/javase/10/docs/api/'
+}
+
+task sourcesJar(type: Jar) {
+    from sourceSets.main.allJava
+    classifier = 'sources'
+}
+
+task javadocJar(type: Jar) {
+    from javadoc
+    classifier = 'javadoc'
+}
+
+artifacts {
+    archives jar
+    archives sourcesJar
+    archives javadocJar
+}
+
+bintray {
+    user = 'zucchini-bot'
+    key = System.getenv('BINTRAY_KEY')
+    publications = ['MavenJava']
+    pkg {
+        repo = 'zucchini'
+        name = 'circuitsim-tester'
+        userOrg = 'zucchini'
+        licenses = ['GPL-3.0']
+        version {
+            name = project.version
+            released  = new Date()
+            vcsTag = project.version
+        }
+    }
+}
+
+// Create the publication with the pom configuration:
+publishing {
+    publications {
+        MavenJava(MavenPublication) {
+            from components.java
+            artifact sourcesJar
+            artifact javadocJar
+            groupId project.group
+            artifactId project.name
+            version project.version
+            pom.withXml {
+                asNode().dependencies.dependency.each { dep ->
+                    if(dep.artifactId.last().value().last().contains("CircuitSim")) {
+                        assert dep.parent().remove(dep)
+                    }
+                }
+            }
+        }
+    }
 }

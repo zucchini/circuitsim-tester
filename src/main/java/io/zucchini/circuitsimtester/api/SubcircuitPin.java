@@ -1,16 +1,18 @@
-package edu.gatech.cs2110.circuitsim.api;
+package io.zucchini.circuitsimtester.api;
+
+import io.zucchini.circuitsimtester.extension.CircuitSimExtension;
 
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
 import java.lang.annotation.Retention;
 
 /**
- * Instructs {@link edu.gatech.cs2110.circuitsim.extension.CircuitSimExtension}
+ * Instructs {@link CircuitSimExtension}
  * to find and inject the Pin component into an {@link InputPin} or
  * {@link OutputPin} field in a test class.
  * <p>
  * When you annotate an {@link InputPin} or {@link OutputPin} field in a
- * test class with this, {@link edu.gatech.cs2110.circuitsim.extension.CircuitSimExtension}
+ * test class with this, {@link CircuitSimExtension}
  * will search the subcircuit for a Pin component with direction
  * (input/output) matching the type of the field, bitsize {@code
  * bits()}, and label {@code label()}. If {@code label()} is {@code ""}
@@ -25,7 +27,7 @@ import java.lang.annotation.Retention;
 public @interface SubcircuitPin {
     /**
      * The label of a matching Pin. If empty (the default), {@link
-     * edu.gatech.cs2110.circuitsim.extension.CircuitSimExtension} will
+     * CircuitSimExtension} will
      * use the name of the field.
      *
      * @return The label of a matching Pin.

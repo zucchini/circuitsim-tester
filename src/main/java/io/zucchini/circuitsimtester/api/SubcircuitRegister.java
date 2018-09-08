@@ -1,16 +1,18 @@
-package edu.gatech.cs2110.circuitsim.api;
+package io.zucchini.circuitsimtester.api;
+
+import io.zucchini.circuitsimtester.extension.CircuitSimExtension;
 
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
 import java.lang.annotation.Retention;
 
 /**
- * Instructs {@link edu.gatech.cs2110.circuitsim.extension.CircuitSimExtension}
+ * Instructs {@link CircuitSimExtension}
  * to find and inject a {@link MockRegister} for a Register component
  * into a {@link MockRegister} field in a test class.
  * <p>
  * When you annotate a {@link MockRegister} field in a test class with
- * this, {@link edu.gatech.cs2110.circuitsim.extension.CircuitSimExtension}
+ * this, {@link CircuitSimExtension}
  * will use {@link Subcircuit#mockOnlyRegister(int)} to replace the only
  * register in the file with a "ghost register." See {@link
  * MockRegister} for details.

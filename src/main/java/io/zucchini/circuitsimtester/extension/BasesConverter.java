@@ -1,4 +1,4 @@
-package edu.gatech.cs2110.circuitsim.extension;
+package io.zucchini.circuitsimtester.extension;
 
 import org.junit.jupiter.params.converter.SimpleArgumentConverter;
 

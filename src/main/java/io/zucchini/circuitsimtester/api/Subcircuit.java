@@ -1,4 +1,4 @@
-package edu.gatech.cs2110.circuitsim.api;
+package io.zucchini.circuitsimtester.api;
 
 import java.io.File;
 import java.util.Collection;
@@ -8,6 +8,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
+
+import io.zucchini.circuitsimtester.extension.CircuitSimExtension;
 import javafx.util.Pair;
 
 import com.ra4king.circuitsim.gui.CircuitBoard;
@@ -18,8 +20,6 @@ import com.ra4king.circuitsim.gui.ComponentPeer;
 import com.ra4king.circuitsim.gui.peers.SubcircuitPeer;
 import com.ra4king.circuitsim.gui.peers.memory.RegisterPeer;
 import com.ra4king.circuitsim.gui.peers.wiring.PinPeer;
-import com.ra4king.circuitsim.gui.peers.wiring.PinPeer;
-import com.ra4king.circuitsim.gui.Properties;
 import com.ra4king.circuitsim.gui.Properties;
 import com.ra4king.circuitsim.simulator.Circuit;
 import com.ra4king.circuitsim.simulator.CircuitState;
@@ -36,7 +36,7 @@ import com.ra4king.circuitsim.simulator.Simulator;
  * it. Your tests shouldn't need to touch this, since it mainly provides
  * methods for loading a subcircuit from a file and poking at its
  * internal state to find components to test — all things {@link
- * edu.gatech.cs2110.circuitsim.extension.CircuitSimExtension} handles
+ * CircuitSimExtension} handles
  * for you.
  */
 public class Subcircuit {

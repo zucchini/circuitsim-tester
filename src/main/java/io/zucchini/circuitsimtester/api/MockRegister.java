@@ -1,4 +1,4 @@
-package edu.gatech.cs2110.circuitsim.api;
+package io.zucchini.circuitsimtester.api;
 
 /**
  * Represents a "ghost" register: a register component replaced with Pin

@@ -1,4 +1,4 @@
-package edu.gatech.cs2110.circuitsim.api;
+package io.zucchini.circuitsimtester.api;
 
 import java.util.Arrays;
 import java.util.Collection;

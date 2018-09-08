@@ -1,4 +1,4 @@
-package edu.gatech.cs2110.circuitsim.extension;
+package io.zucchini.circuitsimtester.extension;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
@@ -13,15 +13,14 @@ import org.junit.jupiter.api.extension.BeforeEachCallback;
 import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.jupiter.api.extension.Extension;
 
-import edu.gatech.cs2110.circuitsim.api.BasePin;
-import edu.gatech.cs2110.circuitsim.api.InputPin;
-import edu.gatech.cs2110.circuitsim.api.MockRegister;
-import edu.gatech.cs2110.circuitsim.api.OutputPin;
-import edu.gatech.cs2110.circuitsim.api.Restrictor;
-import edu.gatech.cs2110.circuitsim.api.Subcircuit;
-import edu.gatech.cs2110.circuitsim.api.SubcircuitPin;
-import edu.gatech.cs2110.circuitsim.api.SubcircuitRegister;
-import edu.gatech.cs2110.circuitsim.api.SubcircuitTest;
+import io.zucchini.circuitsimtester.api.BasePin;
+import io.zucchini.circuitsimtester.api.InputPin;
+import io.zucchini.circuitsimtester.api.MockRegister;
+import io.zucchini.circuitsimtester.api.Restrictor;
+import io.zucchini.circuitsimtester.api.Subcircuit;
+import io.zucchini.circuitsimtester.api.SubcircuitPin;
+import io.zucchini.circuitsimtester.api.SubcircuitRegister;
+import io.zucchini.circuitsimtester.api.SubcircuitTest;
 
 /**
  * Extends JUnit to understand testing CircuitSim subcircuits.

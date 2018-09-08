@@ -1,4 +1,4 @@
-package edu.gatech.cs2110.circuitsim.launcher;
+package io.zucchini.circuitsimtester.launcher;
 
 import java.util.Collection;
 import java.util.List;

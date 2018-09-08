@@ -1,12 +1,10 @@
-package edu.gatech.cs2110.circuitsim.launcher;
+package io.zucchini.circuitsimtester.launcher;
 
 import static org.junit.platform.engine.TestExecutionResult.Status.SUCCESSFUL;
 import static org.junit.platform.engine.discovery.DiscoverySelectors.selectClass;
 import static org.junit.platform.engine.discovery.DiscoverySelectors.selectPackage;
 
-import java.io.FileNotFoundException;
 import java.io.PrintStream;
-import java.util.List;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
@@ -39,8 +37,29 @@ public class TesterLauncher {
         if (student) {
             System.exit(studentRun(testPackage));
         } else { // zucchini
-            String testClassName = args[1];
+            String testClassName = args[2];
             System.exit(zucchiniRun(testPackage, testClassName));
+        }
+    }
+
+    public static void launch(String pkg, String[] args) {
+        boolean student = args.length == 0;
+        boolean zucchini = args.length == 2 && args[0].equals("--zucchini");
+
+        if (!student && !zucchini) {
+            System.err.println("usage: java -jar tester.jar");
+            System.err.println("           → run student tests");
+            System.err.println("       java -jar tester.jar --zucchini SomeTestClass");
+            System.err.println("           → run and generate zucchini json for test SomeTestClass");
+            System.exit(1);
+            return;
+        }
+
+        if (student) {
+            System.exit(studentRun(pkg));
+        } else { // zucchini
+            String testClassName = args[1];
+            System.exit(zucchiniRun(pkg, testClassName));
         }
     }
 
