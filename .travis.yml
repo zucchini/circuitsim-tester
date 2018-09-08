@@ -14,5 +14,4 @@ deploy:
   skip_cleanup: true
   on:
     tags: true
-  local-dir: "build/libs"
-  package_glob: "*.jar"
+  package_glob: "build/libs/*.jar"
