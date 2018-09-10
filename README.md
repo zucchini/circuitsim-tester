@@ -1,4 +1,4 @@
-CircuitSim Autograder Template
+CircuitSim Tester Library
 ==============================
 
 Javadoc for API: <https://ausbin.github.io/circuitsim-grader-template/>
@@ -24,14 +24,23 @@ So I have two goals in this template:
 Getting Started
 ---------------
 
-To make your own CircuitSim autograder:
+To make your own CircuitSim tester, take a look at the [sample tester repo](https://github.com/zucchini/sample-circuitsim-tester).
 
- 1. Clone this repository, probably running `rm -r README.md docs/ *.sim`
-    and writing a new `README.md`
- 2. Edit the project name in `gradle.properties`
- 3. Write some tests in `src/main/java/edu/gatech/cs2110/circuitsim/tests/`
- 4. Test with `./gradlew run` and generate `build/libs/hwX-tester.jar`
-    with `./gradlew jar`
+If you want, you can always include circuitsim-tester yourself to any project using Gradle, making sure that the version is the one you want:
+
+```
+dependencies {
+    compile 'io.zucchini.circuitsim-tester:circuitsim-tester:v0.3.2'
+}
+
+repositories {
+    mavenCentral()
+
+    maven {
+        url  "https://dl.bintray.com/zucchini/zucchini"
+    }
+}
+```
 
 ### Writing Tests
 
