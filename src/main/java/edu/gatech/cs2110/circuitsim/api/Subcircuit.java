@@ -375,15 +375,14 @@ public class Subcircuit {
         return new MockRegister(q, d, en, clk, rst, this);
     }
 
-    private Collection<Port> makeOrphanPort(Port port) {
-        Collection<Port> connectedPorts = port.getLink().getParticipants().stream()
-                                              .filter(p -> p != port).collect(Collectors.toList());
-        connectedPorts.stream().forEach(port::unlinkPort);
-        return connectedPorts;
+    private Port.Link makeOrphanPort(Port port) {
+        Port.Link link = port.getLink();
+        port.unlinkPort(port);
+        return link;
     }
 
     private Pin substitutePin(Port port, boolean isInput) {
-        Collection<Port> originallyConnectedPorts = makeOrphanPort(port);
+        Port.Link originalLink = makeOrphanPort(port);
 
         PinPeer mockPinPeer = new PinPeer(new Properties(
             new Properties.Property<>(Properties.BITSIZE, port.getLink().getBitSize()),
@@ -404,7 +403,7 @@ public class Subcircuit {
         // anything, disconnect it
         makeOrphanPort(newPort);
         // Now reconnect all the old stuff
-        originallyConnectedPorts.stream().forEach(newPort::linkPort);
+        originalLink.linkPort(newPort);
 
         return mockPin;
     }
