@@ -1,6 +1,7 @@
 package edu.gatech.cs2110.circuitsim.api;
 
 import java.io.File;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -23,6 +24,7 @@ import com.ra4king.circuitsim.gui.Properties;
 import com.ra4king.circuitsim.gui.Properties;
 import com.ra4king.circuitsim.simulator.Circuit;
 import com.ra4king.circuitsim.simulator.CircuitState;
+import com.ra4king.circuitsim.simulator.Component;
 import com.ra4king.circuitsim.simulator.components.memory.Register;
 import com.ra4king.circuitsim.simulator.components.wiring.Pin;
 import com.ra4king.circuitsim.simulator.Port;
@@ -44,10 +46,32 @@ public class Subcircuit {
     private CircuitSim circuitSim;
     private CircuitBoard circuitBoard;
 
+    // Used for lookups of components by name
+    private Set<String> categoryNamesKnown = new HashSet<>();
+    private Set<String> componentNamesKnown = new HashSet<>();
+    private Map<Class<? extends ComponentPeer<?>>,
+                Pair<String, String>> componentClassNames;
+
     private Subcircuit(String name, CircuitSim circuitSim, CircuitBoard circuitBoard) {
         this.name = name;
         this.circuitSim = circuitSim;
         this.circuitBoard = circuitBoard;
+        // The category/component names are buried in some semi-internal
+        // CircuitSim data structures, so pull them out and make more
+        // efficient ways to access them
+        initComponentNames();
+    }
+
+    // Find the names of CircuitSim components and component categories
+    private void initComponentNames() {
+        categoryNamesKnown = new HashSet<>();
+        componentNamesKnown = new HashSet<>();
+        componentClassNames = new HashMap<>();
+        circuitSim.getComponentManager().forEach((ComponentManager.ComponentLauncherInfo info) -> {
+            categoryNamesKnown.add(info.name.getKey());
+            componentNamesKnown.add(info.name.getValue());
+            componentClassNames.put(info.clazz, info.name);
+        });
     }
 
     /**
@@ -201,30 +225,54 @@ public class Subcircuit {
     }
 
     /**
+     * Returns the number of Input Pin or Output Pin components int his
+     * circuit. Does not include subcircuits.
+     *
+     * @return the total pin count of this subcircuit
+     */
+    public int getPinCount() {
+        Map<String, Integer> pinCounts = lookupComponentCounts(
+            Arrays.asList("Input Pin", "Output Pin"), false, false);
+        int totalPins = pinCounts.getOrDefault("Input Pin", 0) +
+                        pinCounts.getOrDefault("Output Pin", 0);
+        return totalPins;
+    }
+
+    /**
      * Finds if components with the given names or in the given component
      * categories exist in this subcircuit.
      *
      * @param  componentNames an iterable of component names, component
      *                        category names, or some mixture
      * @param  inverse true if you want to invert the search, else false
-     * @return a set of distinct component names matching the given
-     *         criteria
+     * @param  recursive true if you want to search subcircuits, else false
+     * @return a map of distinct component names matching the given
+     *         criteria to their number occurrences
      */
-    public Set<String> lookupComponents(Collection<String> componentNames,
-                                         boolean inverse) {
-        // The category/component names are buried in some semi-internal
-        // CircuitSim data structures, so pull them out and make more
-        // efficient ways to access them
-        Set<String> categoryNamesKnown = new HashSet<>();
-        Set<String> componentNamesKnown = new HashSet<>();
-        Map<Class<? extends ComponentPeer<?>>, Pair<String, String>> classNames =
-            new HashMap<>();
-        circuitSim.getComponentManager().forEach((ComponentManager.ComponentLauncherInfo info) -> {
-            categoryNamesKnown.add(info.name.getKey());
-            componentNamesKnown.add(info.name.getValue());
-            classNames.put(info.clazz, info.name);
-        });
+    public Map<String, Integer> lookupComponentCounts(
+            Collection<String> componentNames,
+            boolean inverse,
+            boolean recursive) {
+        return lookupComponentPeers(componentNames, inverse, recursive)
+               .entrySet().stream().collect(Collectors.toMap(
+                   entry -> entry.getKey(), entry -> entry.getValue().size()));
+    }
 
+    private Map<String, Set<Component>> lookupComponents(
+            Collection<String> componentNames,
+            boolean inverse,
+            boolean recursive) {
+        return lookupComponentPeers(componentNames, inverse, recursive)
+               .entrySet().stream().collect(Collectors.toMap(
+                   entry -> entry.getKey(),
+                   entry -> entry.getValue().stream().map(peer -> peer.getComponent())
+                                 .collect(Collectors.toSet())));
+    }
+
+    private Map<String, Set<ComponentPeer<?>>> lookupComponentPeers(
+            Collection<String> componentNames,
+            boolean inverse,
+            boolean recursive) {
         // Split the set of names into a set of component names and a
         // set of category names
         Set<String> components = new HashSet<>(componentNames);
@@ -245,10 +293,9 @@ public class Subcircuit {
         // Run a depth-first search through the simulation DAG starting
         // at this subcircuit
         ComponentDFS dfs = new ComponentDFS(
-            classNames, goalCategories, goalComponents, inverse);
+            goalCategories, goalComponents, inverse, recursive);
         return dfs.run(circuitBoard);
     }
-
 
     /**
      * Finds a Pin component labelled {@code pinLabel} in this
@@ -408,35 +455,37 @@ public class Subcircuit {
         return mockPin;
     }
 
-    private static class ComponentDFS {
-        private Map<Class<? extends ComponentPeer<?>>, Pair<String, String>> classNames;
+    private class ComponentDFS {
         private Set<String> goalCategories;
         private Set<String> goalComponents;
         private boolean inverse;
+        private boolean recursive;
         private Set<String> visitedSubcircuits;
-        private Set<String> matchingComponents;
+        private Map<String, Set<ComponentPeer<?>>> matchingComponents;
 
         public ComponentDFS (
-                Map<Class<? extends ComponentPeer<?>>, Pair<String, String>> classNames,
                 Set<String> goalCategories,
                 Set<String> goalComponents,
-                boolean inverse) {
-            this.classNames = classNames;
+                boolean inverse,
+                boolean recursive) {
             this.goalCategories = goalCategories;
             this.goalComponents = goalComponents;
             this.inverse = inverse;
+            this.recursive = recursive;
         }
 
-        public Set<String> run(CircuitBoard circuitBoard) {
+        public Map<String, Set<ComponentPeer<?>>> run(CircuitBoard circuitBoard) {
             visitedSubcircuits = new HashSet<>();
-            matchingComponents = new HashSet<>();
+            matchingComponents = new HashMap<>();
             lookupComponentsDfs(circuitBoard);
             return matchingComponents;
         }
 
         private void lookupComponentsDfs(CircuitBoard circuitBoard) {
             for (ComponentPeer<?> component : circuitBoard.getComponents()) {
-                if (component instanceof SubcircuitPeer) {
+                boolean isSubcircuit = component instanceof SubcircuitPeer;
+
+                if (isSubcircuit && recursive) {
                     SubcircuitPeer subcircuitPeer = (SubcircuitPeer) component;
                     String subcircuitName = subcircuitPeer.getProperties()
                                                           .getProperty(SubcircuitPeer.SUBCIRCUIT)
@@ -450,8 +499,8 @@ public class Subcircuit {
                         CircuitBoard childCircuitBoard = childCircuitManager.getCircuitBoard();
                         lookupComponentsDfs(childCircuitBoard);
                     }
-                } else {
-                    Pair<String, String> name = classNames.get(component.getClass());
+                } else if (!isSubcircuit) {
+                    Pair<String, String> name = componentClassNames.get(component.getClass());
 
                     if (name == null) {
                         throw new IllegalStateException(String.format(
@@ -461,7 +510,9 @@ public class Subcircuit {
                     boolean match = goalCategories.contains(name.getKey()) ||
                                     goalComponents.contains(name.getValue());
                     if (match ^ inverse) {
-                        matchingComponents.add(name.getValue());
+                        Set<ComponentPeer<?>> matches = matchingComponents.getOrDefault(
+                            name.getValue(), new HashSet<>());
+                        matches.add(component);
                     }
                 }
             }

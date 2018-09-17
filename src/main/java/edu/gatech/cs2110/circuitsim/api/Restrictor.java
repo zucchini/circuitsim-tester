@@ -90,7 +90,7 @@ public abstract class Restrictor {
         }
 
         Set<String> violatingComponentNames =
-            subcircuit.lookupComponents(componentNames, isWhitelist);
+            subcircuit.lookupComponentCounts(componentNames, isWhitelist, true).keySet();
 
         if (!violatingComponentNames.isEmpty()) {
             throw new AssertionError(String.format(
