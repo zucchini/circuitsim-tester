@@ -238,25 +238,6 @@ public class Subcircuit {
         return totalPins;
     }
 
-    // TODO: ADD FILTER to make them all N-type or P-type. same for
-    // constants
-    public boolean doComponentsTouch(String componentNameA, String componentNameB) {
-        Map<String, Set<Component>> components =
-            lookupComponents(Arrays.asList(componentNameA, componentNameB), false, true);
-
-        Set<Component> aComponents = components.get(componentNameA);
-        Set<Component> bComponents = components.get(componentNameB);
-        Set<Component> aNeighbors = new HashSet<>();
-        Set<Circuit> visited = new HashSet<>();
-
-        for (Component aComponent : aComponents) {
-            aNeighbors.addAll(findNeighborComponents(aComponent, visited));
-        }
-
-        aNeighbors.retainAll(bComponents);
-        return !aNeighbors.isEmpty();
-    }
-
     /**
      * Finds if components with the given names or in the given component
      * categories exist in this subcircuit.
@@ -473,49 +454,6 @@ public class Subcircuit {
         originallyConnectedPorts.stream().forEach(newPort::linkPort);
 
         return mockPin;
-    }
-
-    private Set<Component> findNeighborComponents(Component component,
-                                                  Set<Circuit> visited) {
-        Set<Component> components = new HashSet<>();
-
-        if (visited.contains(component.getCircuit())) {
-            return components;
-        }
-
-        for (int i = 0; i < component.getNumPorts(); i++) {
-            Port port = component.getPort(i);
-            Port.Link link = port.getLink();
-            for (Port neighborPort : link.getParticipants()) {
-                if (neighborPort == port) {
-                    continue;
-                }
-
-                Component neighbor = neighborPort.getComponent();
-
-                // Sorry for the fully-qualified name
-                if (neighbor instanceof com.ra4king.circuitsim.simulator.components.Subcircuit) {
-                    com.ra4king.circuitsim.simulator.components.Subcircuit subcircuit =
-                        (com.ra4king.circuitsim.simulator.components.Subcircuit) neighbor;
-                    Pin innerPin = null;
-                    for (int j = 0; j < subcircuit.getNumPorts(); j++) {
-                        Port subcircuitPort = subcircuit.getPort(j);
-                        if (subcircuitPort == neighborPort) {
-                            innerPin = subcircuit.getPins().get(j);
-                            break;
-                        }
-                    }
-                    if (innerPin == null) {
-                        throw new IllegalStateException("fairy port detected");
-                    }
-                    components.addAll(findNeighborComponents(innerPin, visited));
-                } else {
-                    components.add(neighbor);
-                }
-            }
-        }
-
-        return components;
     }
 
     private class ComponentDFS {
