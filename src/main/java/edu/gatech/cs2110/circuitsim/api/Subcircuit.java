@@ -510,9 +510,9 @@ public class Subcircuit {
                     boolean match = goalCategories.contains(name.getKey()) ||
                                     goalComponents.contains(name.getValue());
                     if (match ^ inverse) {
-                        Set<ComponentPeer<?>> matches = matchingComponents.getOrDefault(
-                            name.getValue(), new HashSet<>());
-                        matches.add(component);
+                        matchingComponents.computeIfAbsent(
+                            name.getValue(),
+                            k -> new HashSet<>()).add(component);
                     }
                 }
             }

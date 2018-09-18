@@ -1,9 +1,12 @@
 package edu.gatech.cs2110.circuitsim.tests;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Stream;
 
 import org.junit.jupiter.api.DisplayName;
@@ -34,6 +37,11 @@ public class ToyALUTests {
         @Override
         public void validate(Subcircuit subcircuit) throws AssertionError {
             blacklistComponents(subcircuit, "XOR");
+
+            Map<String, Integer> counts = subcircuit.lookupComponentCounts(
+                Arrays.asList("Adder", "Mux"), false, true);
+            assertTrue(counts.getOrDefault("Adder", 0) <= 2, "must contain at most 2 adders");
+            assertTrue(counts.getOrDefault("Mux", 0) <= 1, "must contain at most 1 mux");
         }
     }
 
