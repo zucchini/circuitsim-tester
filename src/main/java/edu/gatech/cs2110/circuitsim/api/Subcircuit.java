@@ -225,7 +225,7 @@ public class Subcircuit {
     }
 
     /**
-     * Returns the number of Input Pin or Output Pin components int his
+     * Returns the number of Input Pin or Output Pin components in this
      * circuit. Does not include subcircuits.
      *
      * @return the total pin count of this subcircuit
