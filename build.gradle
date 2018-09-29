@@ -43,8 +43,8 @@ configurations {
 }
 
 dependencies {
-    includedLibs ':CircuitSim1.8.0:'
-    compile ':CircuitSim1.8.0:'
+    includedLibs ':CircuitSim1.8.1-SNAPSHOT0:'
+    compile ':CircuitSim1.8.1-SNAPSHOT0:'
     compile 'org.junit.jupiter:junit-jupiter-api:5.2.0'
     compile 'org.junit.jupiter:junit-jupiter-params:5.2.0'
     compile 'org.junit.jupiter:junit-jupiter-engine:5.2.0'
