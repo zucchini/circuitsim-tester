@@ -10,7 +10,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import io.zucchini.circuitsimtester.extension.CircuitSimExtension;
+import javafx.scene.canvas.Canvas;
 import javafx.util.Pair;
 
 import com.ra4king.circuitsim.gui.CircuitBoard;
@@ -18,6 +18,7 @@ import com.ra4king.circuitsim.gui.CircuitManager;
 import com.ra4king.circuitsim.gui.CircuitSim;
 import com.ra4king.circuitsim.gui.ComponentManager;
 import com.ra4king.circuitsim.gui.ComponentPeer;
+import com.ra4king.circuitsim.gui.GuiUtils;
 import com.ra4king.circuitsim.gui.peers.SubcircuitPeer;
 import com.ra4king.circuitsim.gui.peers.memory.RegisterPeer;
 import com.ra4king.circuitsim.gui.peers.wiring.PinPeer;
@@ -29,6 +30,9 @@ import com.ra4king.circuitsim.simulator.components.memory.Register;
 import com.ra4king.circuitsim.simulator.components.wiring.Pin;
 import com.ra4king.circuitsim.simulator.Port;
 import com.ra4king.circuitsim.simulator.Simulator;
+
+// Imported for Javadoc(?)
+import io.zucchini.circuitsimtester.extension.CircuitSimExtension;
 
 /**
  * Represents and wraps the subcircuit to test.
@@ -44,7 +48,7 @@ import com.ra4king.circuitsim.simulator.Simulator;
 public class Subcircuit {
     private String name;
     private CircuitSim circuitSim;
-    private CircuitBoard circuitBoard;
+    private CircuitManager circuitManager;
 
     // Used for lookups of components by name
     private Set<String> categoryNamesKnown = new HashSet<>();
@@ -52,10 +56,10 @@ public class Subcircuit {
     private Map<Class<? extends ComponentPeer<?>>,
                 Pair<String, String>> componentClassNames;
 
-    private Subcircuit(String name, CircuitSim circuitSim, CircuitBoard circuitBoard) {
+    private Subcircuit(String name, CircuitSim circuitSim, CircuitManager circuitManager) {
         this.name = name;
         this.circuitSim = circuitSim;
-        this.circuitBoard = circuitBoard;
+        this.circuitManager = circuitManager;
         // The category/component names are buried in some semi-internal
         // CircuitSim data structures, so pull them out and make more
         // efficient ways to access them
@@ -119,7 +123,7 @@ public class Subcircuit {
      * @return the {@code CircuitBoard} of this subcircuit
      */
     public CircuitBoard getCircuitBoard() {
-        return circuitBoard;
+        return circuitManager.getCircuitBoard();
     }
 
     /**
@@ -132,7 +136,7 @@ public class Subcircuit {
      * @return the {@code Circuit} of this subcircuit
      */
     public Circuit getCircuit() {
-        return circuitBoard.getCircuit();
+        return getCircuitBoard().getCircuit();
     }
 
     /**
@@ -182,19 +186,19 @@ public class Subcircuit {
         CircuitSim circuitSim = new CircuitSim(false);
         circuitSim.loadCircuits(circuitFile);
 
-        CircuitBoard circuitBoard = lookupSubcircuit(circuitSim, subcircuitName);
-
-        return new Subcircuit(subcircuitName, circuitSim, circuitBoard);
+        CircuitManager circuitManager = lookupSubcircuit(circuitSim, subcircuitName);
+        return new Subcircuit(subcircuitName, circuitSim, circuitManager);
     }
 
     private static String canonicalName(String name) {
         return name.toLowerCase().replaceAll("[^0-9a-z]+", "");
     }
 
-    private static CircuitBoard lookupSubcircuit(CircuitSim circuitSim, String subcircuitName) {
+    private static CircuitManager lookupSubcircuit(CircuitSim circuitSim, String subcircuitName) {
         String canonicalSubcircuitName = canonicalName(subcircuitName);
-        Map<String, CircuitBoard> boards = circuitSim.getCircuitBoards();
-        List<CircuitBoard> matchingCircuits = boards.entrySet().stream()
+        Map<String, CircuitManager> managers = circuitSim.getCircuitManagers();
+
+        List<CircuitManager> matchingCircuits = managers.entrySet().stream()
             .filter(entry -> canonicalName(entry.getKey()).equals(canonicalSubcircuitName))
             .map(Map.Entry::getValue)
             .collect(Collectors.toList());
@@ -294,7 +298,7 @@ public class Subcircuit {
         // at this subcircuit
         ComponentDFS dfs = new ComponentDFS(
             goalCategories, goalComponents, inverse, recursive);
-        return dfs.run(circuitBoard);
+        return dfs.run(getCircuitBoard());
     }
 
     /**
@@ -322,7 +326,7 @@ public class Subcircuit {
      */
     public BasePin lookupPin(String pinLabel, boolean wantInputPin, int wantBits) {
         String canonicalPinLabel = canonicalName(pinLabel);
-        List<PinPeer> matchingPins = circuitBoard.getComponents().stream()
+        List<PinPeer> matchingPins = getCircuitBoard().getComponents().stream()
             .filter(component -> component instanceof PinPeer &&
                     ((PinPeer) component).getProperties().containsProperty(Properties.LABEL) &&
                     canonicalPinLabel.equals(
@@ -333,11 +337,11 @@ public class Subcircuit {
         if (matchingPins.size() > 1) {
             throw new IllegalArgumentException(String.format(
                 "Subcircuit `%s' contains %d input/output pins labelled `%s', expected 1",
-                circuitBoard.getCircuit().getName(), matchingPins.size(), canonicalPinLabel));
+                getCircuitBoard().getCircuit().getName(), matchingPins.size(), canonicalPinLabel));
         } else if (matchingPins.isEmpty()) {
             throw new IllegalArgumentException(String.format(
                 "Subcircuit `%s' contains no input/output pins labelled `%s'!",
-                circuitBoard.getCircuit().getName(), canonicalPinLabel));
+                getCircuitBoard().getCircuit().getName(), canonicalPinLabel));
         }
 
         PinPeer matchingPin = matchingPins.get(0);
@@ -347,7 +351,7 @@ public class Subcircuit {
         if (matchingPin.isInput() != wantInputPin) {
             throw new IllegalArgumentException(String.format(
                 "Subcircuit `%s' has %s pin labelled `%s', but expected it to be an %s pin instead",
-                circuitBoard.getCircuit().getName(),
+                getCircuitBoard().getCircuit().getName(),
                 theirPinLabel,
                 matchingPin.isInput()? "input" : "output",
                 wantInputPin? "input" : "output"));
@@ -357,7 +361,7 @@ public class Subcircuit {
         if (actualBits != wantBits) {
             throw new IllegalArgumentException(String.format(
                 "Subcircuit `%s' has pin labelled `%s' with %d bits, but expected %d bits",
-                circuitBoard.getCircuit().getName(),
+                getCircuitBoard().getCircuit().getName(),
                 theirPinLabel, actualBits, wantBits));
         }
 
@@ -389,7 +393,7 @@ public class Subcircuit {
      * @see    MockRegister
      */
     public MockRegister mockOnlyRegister(int wantBits) {
-        List<Register> registers = circuitBoard.getComponents().stream()
+        List<Register> registers = getCircuitBoard().getComponents().stream()
             .filter(component -> component instanceof RegisterPeer)
             .map(component -> ((RegisterPeer) component).getComponent())
             .collect(Collectors.toList());
@@ -397,11 +401,11 @@ public class Subcircuit {
         if (registers.size() > 1) {
             throw new IllegalArgumentException(String.format(
                 "Subcircuit `%s' contains %d registers, expected 1",
-                circuitBoard.getCircuit().getName(), registers.size()));
+                getCircuitBoard().getCircuit().getName(), registers.size()));
         } else if (registers.isEmpty()) {
             throw new IllegalArgumentException(String.format(
                 "Subcircuit `%s' contains no registers!",
-                circuitBoard.getCircuit().getName()));
+                getCircuitBoard().getCircuit().getName()));
         }
 
         Register reg = registers.get(0);
@@ -410,7 +414,7 @@ public class Subcircuit {
         if (actualBits != wantBits) {
             throw new IllegalArgumentException(String.format(
                 "Subcircuit `%s' has register with %d bits, but expected %d bits",
-                circuitBoard.getCircuit().getName(), actualBits, wantBits));
+                getCircuitBoard().getCircuit().getName(), actualBits, wantBits));
         }
 
         InputPin q = new InputPin(substitutePin(reg.getPort(Register.PORT_OUT), true), this);
@@ -428,27 +432,32 @@ public class Subcircuit {
         return link;
     }
 
+    private int getMaxX() {
+        return (int) Math.ceil(circuitManager.getCanvas().getWidth() / GuiUtils.BLOCK_SIZE);
+    }
+
+    private int getMaxY() {
+        return (int) Math.ceil(circuitManager.getCanvas().getHeight() / GuiUtils.BLOCK_SIZE);
+    }
+
     private Pin substitutePin(Port port, boolean isInput) {
         Port.Link originalLink = makeOrphanPort(port);
 
         PinPeer mockPinPeer = new PinPeer(new Properties(
             new Properties.Property<>(Properties.BITSIZE, port.getLink().getBitSize()),
             new Properties.Property<>(PinPeer.IS_INPUT, isInput)
-        ), 0, 0);
+        ), getMaxX(), getMaxY());
 
         // Find a valid place to drop it
-        while (!circuitBoard.isValidLocation(mockPinPeer)) {
+        do {
             mockPinPeer.setX(mockPinPeer.getX() + 32);
             mockPinPeer.setY(mockPinPeer.getY() + 32);
-        }
+        } while (!getCircuitBoard().isValidLocation(mockPinPeer));
 
-        circuitBoard.addComponent(mockPinPeer);
+        getCircuitBoard().addComponent(mockPinPeer);
 
         Pin mockPin = mockPinPeer.getComponent();
         Port newPort = mockPin.getPort(Pin.PORT);
-        // In case CircuitSim automatically connected this new Pin to
-        // anything, disconnect it
-        makeOrphanPort(newPort);
         // Now reconnect all the old stuff
         originalLink.linkPort(newPort);
 
