@@ -12,7 +12,7 @@ plugins {
     id 'java'
 
     // For publishing to BinTray
-    id "com.jfrog.bintray" version "1.8.4"
+    id "com.jfrog.bintray" version "2.2.0"
 
     // Produce maven packages for easy inclusion
     id 'maven-publish'
@@ -43,8 +43,8 @@ configurations {
 }
 
 dependencies {
-    includedLibs ':CircuitSim.v1:'
-    compile ':CircuitSim.v1:'
+    includedLibs ':CircuitSim:'
+    compile ':CircuitSim:'
     compile 'org.junit.jupiter:junit-jupiter-api:5.2.0'
     compile 'org.junit.jupiter:junit-jupiter-params:5.2.0'
     compile 'org.junit.jupiter:junit-jupiter-engine:5.2.0'
