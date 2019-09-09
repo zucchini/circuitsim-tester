@@ -12,7 +12,7 @@ plugins {
     id 'java'
 
     // For publishing to BinTray
-    id "com.jfrog.bintray" version "2.2.0"
+    id "com.jfrog.bintray" version "1.8.4"
 
     // Produce maven packages for easy inclusion
     id 'maven-publish'
@@ -23,9 +23,9 @@ plugins {
 group = 'io.zucchini.circuitsim-tester'
 version gitVersion()
 
-// Build for Java 8
-sourceCompatibility = '1.8'
-targetCompatibility = '1.8'
+// Build for Java 10
+sourceCompatibility = '1.10'
+targetCompatibility = '1.10'
 
 repositories {
     // Use jcenter for resolving your dependencies.
