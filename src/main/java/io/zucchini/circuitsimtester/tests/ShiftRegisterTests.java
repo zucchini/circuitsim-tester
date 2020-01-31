@@ -1,13 +1,13 @@
 package io.zucchini.circuitsimtester.tests;
 
-import edu.gatech.cs2110.circuitsim.api.*;
-import edu.gatech.cs2110.circuitsim.extension.CircuitSimExtension;
+import io.zucchini.circuitsimtester.api.*;
+import io.zucchini.circuitsimtester.extension.CircuitSimExtension;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
-import static edu.gatech.cs2110.circuitsim.api.SubcircuitComponent.Type.TUNNEL;
+import static io.zucchini.circuitsimtester.api.SubcircuitComponent.Type.TUNNEL;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @DisplayName("Shift Register")

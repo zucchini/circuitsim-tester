@@ -11,9 +11,7 @@ import java.util.*;
 import java.util.function.BiConsumer;
 import java.util.stream.Collectors;
 
-<<<<<<< HEAD:src/main/java/io/zucchini/circuitsimtester/api/Subcircuit.java
 import javafx.scene.canvas.Canvas;
-=======
 import com.ra4king.circuitsim.gui.*;
 import com.ra4king.circuitsim.gui.Properties;
 import com.ra4king.circuitsim.gui.peers.memory.RAMPeer;
@@ -21,16 +19,12 @@ import com.ra4king.circuitsim.gui.peers.memory.ROMPeer;
 import com.ra4king.circuitsim.gui.peers.wiring.ClockPeer;
 import com.ra4king.circuitsim.gui.peers.wiring.Tunnel;
 import com.ra4king.circuitsim.simulator.components.memory.RAM;
->>>>>>> 6abad0a... First stab at datapath grader capabilities:src/main/java/edu/gatech/cs2110/circuitsim/api/Subcircuit.java
 import javafx.util.Pair;
 
 import com.ra4king.circuitsim.gui.peers.SubcircuitPeer;
 import com.ra4king.circuitsim.gui.peers.memory.RegisterPeer;
 import com.ra4king.circuitsim.gui.peers.wiring.PinPeer;
-<<<<<<< HEAD:src/main/java/io/zucchini/circuitsimtester/api/Subcircuit.java
 import com.ra4king.circuitsim.gui.Properties;
-=======
->>>>>>> 6abad0a... First stab at datapath grader capabilities:src/main/java/edu/gatech/cs2110/circuitsim/api/Subcircuit.java
 import com.ra4king.circuitsim.simulator.Circuit;
 import com.ra4king.circuitsim.simulator.CircuitState;
 import com.ra4king.circuitsim.simulator.Component;
