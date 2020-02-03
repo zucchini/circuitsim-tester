@@ -20,8 +20,8 @@ public class Clock extends MockPulser {
                     "Ticked clock more than " + maxCycleCount + " times without finishing. " +
                     "Please check for errors in your logic");
             }
-
             tick();
+            ticks++;
         }
         return ticks;
     }
