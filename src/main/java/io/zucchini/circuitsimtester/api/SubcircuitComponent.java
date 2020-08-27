@@ -24,7 +24,7 @@ import java.lang.annotation.Retention;
  * @see OutputPin
  */
 @Retention(RUNTIME)
-public @interface SubcircuitPin {
+public @interface SubcircuitComponent {
     /**
      * The label of a matching Pin. If empty (the default), {@link
      * CircuitSimExtension} will
