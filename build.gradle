@@ -12,7 +12,7 @@ plugins {
     id 'java'
 
     // For publishing to BinTray
-    id "com.jfrog.bintray" version "1.8.4"
+    id "com.jfrog.bintray" version "1.8.5"
 
     // Produce maven packages for easy inclusion
     id 'maven-publish'
