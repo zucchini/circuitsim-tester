@@ -23,9 +23,8 @@ plugins {
 group = 'io.zucchini.circuitsim-tester'
 version gitVersion()
 
-// Build for Java 10
-sourceCompatibility = '1.8'
-targetCompatibility = '1.8'
+sourceCompatibility = JavaVersion.VERSION_11
+targetCompatibility = JavaVersion.VERSION_11
 
 repositories {
     // Use jcenter for resolving your dependencies.
@@ -44,11 +43,11 @@ configurations {
 
 dependencies {
     includedLibs ':CircuitSim:'
-    compile ':CircuitSim:'
-    compile 'org.junit.jupiter:junit-jupiter-api:5.2.0'
-    compile 'org.junit.jupiter:junit-jupiter-params:5.2.0'
-    compile 'org.junit.jupiter:junit-jupiter-engine:5.2.0'
-    compile 'org.junit.platform:junit-platform-launcher:1.2.0'
+    implementation ':CircuitSim:'
+    implementation 'org.junit.jupiter:junit-jupiter-api:5.2.0'
+    implementation 'org.junit.jupiter:junit-jupiter-params:5.2.0'
+    implementation 'org.junit.jupiter:junit-jupiter-engine:5.2.0'
+    implementation 'org.junit.platform:junit-platform-launcher:1.2.0'
 }
 
 compileJava {
