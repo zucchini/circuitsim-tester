@@ -1,1 +1,1 @@
-packageSearchIndex = [{"l":"edu.gatech.cs2110.circuitsim.api"},{"l":"edu.gatech.cs2110.circuitsim.extension"}]
+packageSearchIndex = [{"l":"All Packages","url":"allpackages-index.html"},{"l":"io.zucchini.circuitsimtester.api"},{"l":"io.zucchini.circuitsimtester.extension"}]
