@@ -11,9 +11,6 @@ plugins {
     // Apply the java plugin to add support for Java
     id 'java'
 
-    // For publishing to BinTray
-    id "com.jfrog.bintray" version "1.8.5"
-
     // Produce maven packages for easy inclusion
     id 'maven-publish'
 
@@ -88,23 +85,6 @@ artifacts {
     archives javadocJar
 }
 
-bintray {
-    user = 'zucchini-bot'
-    key = System.getenv('BINTRAY_KEY')
-    publications = ['MavenJava']
-    pkg {
-        repo = 'zucchini'
-        name = 'circuitsim-tester'
-        userOrg = 'zucchini'
-        licenses = ['GPL-3.0']
-        version {
-            name = project.version
-            released  = new Date()
-            vcsTag = project.version
-        }
-    }
-}
-
 // Create the publication with the pom configuration:
 publishing {
     publications {
@@ -122,6 +102,16 @@ publishing {
                     }
                 }
             }
+        }
+    }
+    repositories {
+        maven {
+          name = "GitHubPackages"
+          url = "https://maven.pkg.github.com/zucchini/circuitsim-tester"
+          credentials {
+            username = System.getenv("GITHUB_ACTOR")
+            password = System.getenv("GITHUB_TOKEN")
+          }
         }
     }
 }
