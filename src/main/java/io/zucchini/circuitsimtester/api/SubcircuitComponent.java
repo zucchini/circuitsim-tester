@@ -19,7 +19,7 @@ import java.lang.annotation.Retention;
  * (the default), it will search for a label matching the name of the
  * field instead.
  *
- * @see Subcircuit#lookupPin(String,boolean,int)
+ * @see Subcircuit#lookupPin(String,boolean,int,boolean)
  * @see InputPin
  * @see OutputPin
  */

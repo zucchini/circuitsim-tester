@@ -26,8 +26,10 @@ public class Register {
     }
 
     /**
-     * Returns the current value of the register. This value is not sign
-     * extended.
+     * Returns the current value of the register. This value is not
+     * sign-extended; to sign-extend the value, see {@link getQSext()}.
+     *
+     * @return the current value of the register, not sign extended
      */
     public int getQ() {
         return Bits.betterFloatingErrorMessage(() ->
@@ -36,7 +38,9 @@ public class Register {
 
     /**
      * Returns the current value of the register, sign-extended to 32
-     * bits. Like {@code getQ()} except sign-extended.
+     * bits. Like {@link getQ()} except sign-extended.
+     *
+     * @return the current value of the register, sign extended to 32 bits
      */
     public int getQSext() {
         return Bits.sext(getQ(), reg.getBitSize());

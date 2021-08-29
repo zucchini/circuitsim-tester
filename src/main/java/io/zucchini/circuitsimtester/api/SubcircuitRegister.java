@@ -1,5 +1,7 @@
 package io.zucchini.circuitsimtester.api;
 
+import com.ra4king.circuitsim.simulator.components.memory.Register;
+
 import io.zucchini.circuitsimtester.extension.CircuitSimExtension;
 
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
@@ -13,12 +15,12 @@ import java.lang.annotation.Retention;
  * <p>
  * When you annotate a {@link MockRegister} field in a test class with
  * this, {@link CircuitSimExtension}
- * will use {@link Subcircuit#mockOnlyRegister(int)} to replace the only
+ * will use {@link Subcircuit#mockRegister(Register)} to replace the only
  * register in the file with a "ghost register." See {@link
  * MockRegister} for details.
  *
  * @see MockRegister
- * @see Subcircuit#mockOnlyRegister(int)
+ * @see Subcircuit#mockRegister(Register)
  */
 @Retention(RUNTIME)
 public @interface SubcircuitRegister {

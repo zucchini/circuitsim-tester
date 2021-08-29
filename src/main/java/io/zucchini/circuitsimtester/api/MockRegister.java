@@ -1,5 +1,7 @@
 package io.zucchini.circuitsimtester.api;
 
+import com.ra4king.circuitsim.simulator.components.memory.Register;
+
 /**
  * Represents a "ghost" register: a register component replaced with Pin
  * components for easier testing. Useful for testing the combinational
@@ -35,7 +37,7 @@ package io.zucchini.circuitsimtester.api;
  * Register Port so you can test the student connected all register
  * ports correctly.
  *
- * @see Subcircuit#mockOnlyRegister(int)
+ * @see Subcircuit#mockRegister(Register)
  */
 public class MockRegister {
     private InputPin q;

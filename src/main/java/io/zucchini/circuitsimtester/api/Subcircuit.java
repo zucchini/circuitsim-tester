@@ -332,6 +332,7 @@ public class Subcircuit {
      * @param  pinLabel     the label of the pin
      * @param  wantInputPin whether the pin found should be input or output
      * @param  wantBits     how many bits the pin found should have
+     * @param  recursive    whether or not to recursively search subcircuits
      * @return either an {@link InputPin} or {@link OutputPin} depending
      *         on {@code wantInputPin}
      * @throws IllegalArgumentException if the subcircuit does not

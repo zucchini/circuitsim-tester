@@ -10,6 +10,8 @@ public abstract class BaseMemory {
      * Loads a stream of a dat file into this component's memory. Format
      * is the same as the .dat files saved in the CircuitSim memory
      * editor window.
+     *
+     * @param stream the stream of the .dat file to be loaded
      */
     public void load(InputStream stream) {
         Scanner scanner = new Scanner(stream);
