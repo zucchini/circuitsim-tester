@@ -30,14 +30,14 @@ If you want, you can always include circuitsim-tester yourself to any project us
 
 ```
 dependencies {
-    compile 'io.zucchini.circuitsim-tester:circuitsim-tester:v0.3.2'
+    compile 'io.zucchini.circuitsim-tester:circuitsim-tester:v2.3.0'
 }
 
 repositories {
     mavenCentral()
 
     maven {
-        url  "https://dl.bintray.com/zucchini/zucchini"
+        url  "https://maven.pkg.github.com/zucchini/circuitsim-tester"
     }
 }
 ```
@@ -419,10 +419,10 @@ Note that since `hwX-tester.jar` is in `grading-files`, it'll need to be
 in `grading-files/` in the zucchini assignment repository.
 
 [1]: https://github.com/ra4king/CircuitSim
-[2]: https://ausbin.github.io/circuitsim-grader-template/edu/gatech/cs2110/circuitsim/api/Subcircuit.html#fromPath(java.lang.String,java.lang.String)
-[3]: https://ausbin.github.io/circuitsim-grader-template/edu/gatech/cs2110/circuitsim/api/SubcircuitPin.html
-[4]: https://ausbin.github.io/circuitsim-grader-template/edu/gatech/cs2110/circuitsim/api/MockRegister.html#getQ()
-[5]: https://ausbin.github.io/circuitsim-grader-template/edu/gatech/cs2110/circuitsim/api/MockRegister.html#getD()
+[2]: https://zucchini.github.io/circuitsim-tester/io/zucchini/circuitsimtester/api/Subcircuit.html#fromPath(java.lang.String,java.lang.String)
+[3]: https://zucchini.github.io/circuitsim-tester/io/zucchini/circuitsimtester/api/SubcircuitPin.html
+[4]: https://zucchini.github.io/circuitsim-tester/io/zucchini/circuitsimtester/api/MockRegister.html#getQ()
+[5]: https://zucchini.github.io/circuitsim-tester/io/zucchini/circuitsimtester/api/MockRegister.html#getD()
 [6]: https://github.com/zucchini/zucchini
 [7]: https://github.com/zucchini/zucchini/blob/master/zucchini/graders/circuitsim_grader.py
-[8]: https://ausbin.github.io/circuitsim-grader-template/edu/gatech/cs2110/circuitsim/api/Restrictor.html
+[8]: https://zucchini.github.io/circuitsim-tester/io/zucchini/circuitsimtester/api/Restrictor.html

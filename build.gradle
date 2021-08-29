@@ -62,11 +62,11 @@ jar {
 
 javadoc {
     title 'CircuitSim Autograder API'
-    include 'io/zucchini/circuitsim/grader/api/*', 'io/zucchini/circuitsim/grader/extension/*'
+    include 'io/zucchini/circuitsimtester/api/*', 'io/zucchini/circuitsimtester/extension/*'
     // For github pages
     destinationDir = file('docs')
     options.addBooleanOption 'html5', true
-    options.addStringOption  'link', 'https://docs.oracle.com/javase/10/docs/api/'
+    options.addStringOption  'link', 'https://docs.oracle.com/en/java/javase/11/docs/api/'
 }
 
 task sourcesJar(type: Jar) {
