@@ -30,7 +30,7 @@ If you want, you can always include circuitsim-tester yourself to any project us
 
 ```
 dependencies {
-    compile 'io.zucchini.circuitsim-tester:circuitsim-tester:v2.3.0'
+    compile 'io.zucchini.circuitsim-tester:circuitsim-tester:v2.4.0'
 }
 
 repositories {
