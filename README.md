@@ -1,7 +1,7 @@
 CircuitSim Tester Library
 ==============================
 
-Javadoc for API: <https://ausbin.github.io/circuitsim-grader-template/>
+Javadocs for API: <https://zucchini.github.io/circuitsim-tester/>
 
 This repository aims to bridge the gap between the nitty-gritty details
 of the [CircuitSim][1] API and high-level tests on combinational logic
