@@ -28,19 +28,38 @@ To make your own CircuitSim tester, take a look at the [sample tester repo](http
 
 If you want, you can always include circuitsim-tester yourself to any project using Gradle, making sure that the version is the one you want:
 
-```
+`build.gradle`:
+
+```groovy
+// ...
+
 dependencies {
-    compile 'io.zucchini.circuitsim-tester:circuitsim-tester:v2.4.0'
+    implementation 'io.zucchini.circuitsim-tester:circuitsim-tester:v2.4.0'
 }
 
 repositories {
     mavenCentral()
 
     maven {
-        url  "https://maven.pkg.github.com/zucchini/circuitsim-tester"
+        url 'https://maven.pkg.github.com/zucchini/circuitsim-tester'
+        credentials {
+            username = project.findProperty('gpr.user') ?: System.getenv('USERNAME')
+            password = project.findProperty('gpr.key') ?: System.getenv('TOKEN')
+        }
     }
 }
+
+// ...
 ```
+
+`gradle.properties`:
+
+```
+gpr.user=<github-username>
+gpr.key=<personal-access-token>
+```
+
+Note that using GitHub Packages requires authentication using a personal access token (only requires `read:packages` scope). For more information, see [the GitHub documentation for working with the Gradle registry](https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-gradle-registry#authenticating-to-github-packages).
 
 ### Writing Tests
 
