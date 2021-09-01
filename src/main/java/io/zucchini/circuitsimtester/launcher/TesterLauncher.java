@@ -19,36 +19,14 @@ public class TesterLauncher {
     private SortedSet<TestClassResult> results;
     private PrintStream out, err;
 
-    public static void main(String[] args) {
-        boolean student = args.length == 1;
-        boolean zucchini = args.length == 3 && args[1].equals("--zucchini");
-
-        if (!student && !zucchini) {
-            System.err.println("usage: java -jar tester.jar org.sample.test.package");
-            System.err.println("           → run student tests");
-            System.err.println("       java -jar tester.jar org.sample.test.package --zucchini SomeTestClass");
-            System.err.println("           → run and generate zucchini json for test SomeTestClass");
-            System.exit(1);
-            return;
-        }
-
-        String testPackage = args[0];
-
-        if (student) {
-            System.exit(studentRun(testPackage));
-        } else { // zucchini
-            String testClassName = args[2];
-            System.exit(zucchiniRun(testPackage, testClassName));
-        }
-    }
-
     public static void launch(String pkg, String[] args) {
-        boolean student = args.length == 0;
+        boolean verbose = false;
+        boolean student = args.length <= 1 && (args.length == 0 || (verbose = args[0].equals("--verbose")));
         boolean zucchini = args.length == 2 && args[0].equals("--zucchini");
 
         if (!student && !zucchini) {
-            System.err.println("usage: java -jar tester.jar");
-            System.err.println("           → run student tests");
+            System.err.println("usage: java -jar tester.jar [--verbose]");
+            System.err.println("           → run student tests (optionally, with verbose output)");
             System.err.println("       java -jar tester.jar --zucchini SomeTestClass");
             System.err.println("           → run and generate zucchini json for test SomeTestClass");
             System.exit(1);
@@ -56,18 +34,18 @@ public class TesterLauncher {
         }
 
         if (student) {
-            System.exit(studentRun(pkg));
+            System.exit(studentRun(pkg, verbose));
         } else { // zucchini
             String testClassName = args[1];
             System.exit(zucchiniRun(pkg, testClassName));
         }
     }
 
-    private static int studentRun(String testPackage) {
+    private static int studentRun(String testPackage, boolean verbose) {
         TesterLauncher launcher = new TesterLauncher(
                 testPackage, System.out, System.err);
         launcher.runAllTests();
-        launcher.printStudentSummary();
+        launcher.printStudentSummary(verbose);
         return launcher.wasSuccessful()? 0 : 1;
     }
 
@@ -100,7 +78,7 @@ public class TesterLauncher {
         results.addAll(testListener.harvest());
     }
 
-    public void printStudentSummary() {
+    public void printStudentSummary(boolean verbose) {
         if (wasSuccessful()) {
             out.println("All student tests pass! Good job.");
             out.println();
@@ -128,6 +106,12 @@ public class TesterLauncher {
                             out.printf("%nTest Suite: %s:%n", classResult.getId().getDisplayName());
                             printedSuite = true;
                         }
+
+                        if (verbose) {
+                            err.printf("[verbose] stack trace for failure:\n");
+                            methodResult.getResult().getThrowable().get().printStackTrace(err);
+                        }
+
                         out.printf("\t[FAIL] %s: %s%n", methodResult.getId().getDisplayName(),
                                    methodResult.getResult().getThrowable().get().getMessage());
 

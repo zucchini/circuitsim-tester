@@ -70,7 +70,7 @@ Suppose we had a Toy ALU like the following that we wanted to test:
 ![Screenshot of `toy-alu.sim`](https://i.imgur.com/tnemxwg.png)
 
 You can find the full test at
-`src/main/java/edu/gatech/cs2110/circuitsim/tests/ToyALU.java`, but
+`src/main/java/io/zucchini/circuitsimtester/tests/ToyALUTests.java`, but
 a brief walkthrough follows if you just want the highlights.
 
 Let's start with the boilerplate test class:
@@ -186,7 +186,7 @@ Note that JUnit locates the second (**static**!) method because it has
 the same name as the test.
 
 You can see the finished product in
-`src/main/java/edu/gatech/cs2110/circuitsim/tests/ToyALU.java`.
+`src/main/java/io/zucchini/circuitsimtester/tests/ToyALUTests.java`.
 
 #### Restrictors (Banning Components)
 
@@ -331,8 +331,51 @@ arbitrary value just like any other input pin.
 ```
 
 You can see the finished product at
-`src/main/java/edu/gatech/cs2110/circuitsim/tests/FsmTests.java`.
+`src/main/java/io/zucchini/circuitsimtester/tests/FsmTests.java`.
 
+Debugging This Library
+----------------------
+
+If an autograder is producing weird failures (for instance, the error
+message printed for some test is `null`), you can pass `--verbose` to
+the grader jar to make the custom JUnit Launcher in this library print
+the full stack trace for the `Throwable` corresponding to every test
+failure.
+
+If worse comes to worse and you need to debug a copy of this library
+alongside a grader, the following steps might work depending on local
+weather patterns and what you ate in the last 36 hours:
+
+ 1. Clone this repository inside the directory with your autograder
+ 2. In the autograder directory itself:
+    1. Add the following two lines to `settings.gradle`:
+       ```
+       include ":circuitsim-tester"
+       project(":circuitsim-tester").projectDir = file("circuitsim-tester")
+       ```
+    2. Comment out the dependency on
+       `io.zucchini.circuitsim-tester:circuitsim-tester` inside the
+       `dependencies {}` block in `build.gradle`. Add a new line in the
+       `dependencies {}` block: `implementation project(":circuitsim-tester")`.
+       The result might look like this:
+       ```
+       dependencies {
+           //implementation 'io.zucchini.circuitsim-tester:circuitsim-tester:v2.4.0'
+           implementation project(":circuitsim-tester")
+           implementation group: 'junit', name: 'junit', version: '4.12'
+       }
+       ```
+ 3. In the cloned copy of this repository (`circuitsim-tester`), comment
+    out these two lines related to git version business in `build.gradle`:
+    ```
+    //id 'com.palantir.git-version' version "0.12.3"
+    ...
+    //version gitVersion()
+    ```
+ 4. Run `./gradlew jar` in both the cloned copy of this repository and
+    in the top-level autograder directory, in that order. You'll need to
+    this step any time you change any code in the cloned copy of this
+    repository.
 
 Caveats
 -------
