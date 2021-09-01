@@ -33,7 +33,7 @@ import org.junit.jupiter.params.converter.SimpleArgumentConverter;
  * }
  * </pre>
  *
- * @see <a href="https://github.com/ausbin/circuitsim-grader-template/blob/master/README.md">The README with examples</a>
+ * @see <a href="https://github.com/zucchini/circuitsim-tester/blob/master/README.md">The README with examples</a>
  */
 public class BasesConverter extends SimpleArgumentConverter {
     @Override

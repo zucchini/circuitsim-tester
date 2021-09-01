@@ -2,22 +2,34 @@ package io.zucchini.circuitsimtester.extension;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
-import java.util.*;
+import java.util.Arrays;
 import java.util.function.Function;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Collectors;
 import java.util.stream.Collectors;
 
-import io.zucchini.circuitsimtester.api.*;
 import org.junit.jupiter.api.extension.BeforeAllCallback;
 import org.junit.jupiter.api.extension.BeforeEachCallback;
 import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.jupiter.api.extension.Extension;
 
+import io.zucchini.circuitsimtester.api.BaseMemory;
 import io.zucchini.circuitsimtester.api.BasePin;
+import io.zucchini.circuitsimtester.api.Button;
+import io.zucchini.circuitsimtester.api.Clock;
 import io.zucchini.circuitsimtester.api.InputPin;
+import io.zucchini.circuitsimtester.api.MockPulser;
 import io.zucchini.circuitsimtester.api.MockRegister;
+import io.zucchini.circuitsimtester.api.OutputPin;
+import io.zucchini.circuitsimtester.api.Ram;
+import io.zucchini.circuitsimtester.api.Register;
 import io.zucchini.circuitsimtester.api.Restrictor;
+import io.zucchini.circuitsimtester.api.Rom;
 import io.zucchini.circuitsimtester.api.Subcircuit;
-import io.zucchini.circuitsimtester.api.SubcircuitPin;
+import io.zucchini.circuitsimtester.api.SubcircuitComponent;
 import io.zucchini.circuitsimtester.api.SubcircuitRegister;
 import io.zucchini.circuitsimtester.api.SubcircuitTest;
 import static io.zucchini.circuitsimtester.api.Subcircuit.MemoryType.RAM;
@@ -31,7 +43,7 @@ import static io.zucchini.circuitsimtester.api.SubcircuitComponent.Type.TUNNEL;
  * <p>
  * To use: annotate a JUnit test class with {@code  @ExtendWith(CircuitSimExtension.class)}
  *
- * @see <a href="https://github.com/ausbin/circuitsim-grader-template/blob/master/README.md">The README with examples</a>
+ * @see <a href="https://github.com/zucchini/circuitsim-tester/blob/master/README.md">The README with examples</a>
  */
 public class CircuitSimExtension implements Extension, BeforeAllCallback, BeforeEachCallback {
     private boolean resetSimulationBetween;
