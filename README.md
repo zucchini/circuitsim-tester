@@ -80,16 +80,16 @@ Let's start with the boilerplate test class:
 @ExtendWith(CircuitSimExtension.class)
 @SubcircuitTest(file="toy-alu.sim", subcircuit="ALU")
 public class ToyALUTests {
-    @SubcircuitPin(bits=4)
+    @SubcircuitComponent(bits=4)
     private InputPin a;
 
-    @SubcircuitPin(bits=4)
+    @SubcircuitComponent(bits=4)
     private InputPin b;
 
-    @SubcircuitPin(bits=2)
+    @SubcircuitComponent(bits=2)
     private InputPin sel;
 
-    @SubcircuitPin(bits=4)
+    @SubcircuitComponent(bits=4)
     private OutputPin out;
 }
 ```
@@ -109,7 +109,7 @@ will be normalized into a lowercase alphanumeric string. That way,
 
 The Pin fields are pretty self-explanatory: the extension looks up Pin
 components in the subcircuit based on the name of fields annotated with
-`@SubcircuitPin`. [If you want to match on a different label, say
+`@SubcircuitComponent`. [If you want to match on a different label, say
 `label="something else"`][3].
 
 Let's start with testing the last operation, Pass A, since it's the easiest:
@@ -265,19 +265,19 @@ The syntax for this is similar to pins:
 @ExtendWith(CircuitSimExtension.class)
 @SubcircuitTest(file="fsm.sim", subcircuit="fsm")
 public class FsmTests {
-    @SubcircuitPin(bits=1)
+    @SubcircuitComponent(bits=1)
     private InputPin g;
 
-    @SubcircuitPin(bits=1)
+    @SubcircuitComponent(bits=1)
     private InputPin clk;
 
-    @SubcircuitPin(bits=1)
+    @SubcircuitComponent(bits=1)
     private InputPin rst;
 
-    @SubcircuitPin(bits=1)
+    @SubcircuitComponent(bits=1)
     private InputPin en;
 
-    @SubcircuitPin(bits=1)
+    @SubcircuitComponent(bits=1)
     private OutputPin a;
 
     @SubcircuitRegister(bits=2, onlyRegister=true)
@@ -439,7 +439,7 @@ in `grading-files/` in the zucchini assignment repository.
 
 [1]: https://github.com/ra4king/CircuitSim
 [2]: https://zucchini.github.io/circuitsim-tester/io/zucchini/circuitsimtester/api/Subcircuit.html#fromPath(java.lang.String,java.lang.String)
-[3]: https://zucchini.github.io/circuitsim-tester/io/zucchini/circuitsimtester/api/SubcircuitPin.html
+[3]: https://zucchini.github.io/circuitsim-tester/io/zucchini/circuitsimtester/api/SubcircuitComponent.html
 [4]: https://zucchini.github.io/circuitsim-tester/io/zucchini/circuitsimtester/api/MockRegister.html#getQ()
 [5]: https://zucchini.github.io/circuitsim-tester/io/zucchini/circuitsimtester/api/MockRegister.html#getD()
 [6]: https://github.com/zucchini/zucchini
