@@ -30,7 +30,6 @@ import io.zucchini.circuitsimtester.api.Restrictor;
 import io.zucchini.circuitsimtester.api.Rom;
 import io.zucchini.circuitsimtester.api.Subcircuit;
 import io.zucchini.circuitsimtester.api.SubcircuitComponent;
-import io.zucchini.circuitsimtester.api.SubcircuitRegister;
 import io.zucchini.circuitsimtester.api.SubcircuitTest;
 import static io.zucchini.circuitsimtester.api.Subcircuit.MemoryType.RAM;
 import static io.zucchini.circuitsimtester.api.Subcircuit.MemoryType.ROM;
