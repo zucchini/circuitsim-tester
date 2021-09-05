@@ -280,7 +280,7 @@ public class FsmTests {
     @SubcircuitComponent(bits=1)
     private OutputPin a;
 
-    @SubcircuitRegister(bits=2, onlyRegister=true)
+    @SubcircuitComponent(bits=2, onlyInstance=true)
     private MockRegister stateReg;
 }
 ```
