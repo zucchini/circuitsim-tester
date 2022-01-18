@@ -342,40 +342,38 @@ the grader jar to make the custom JUnit Launcher in this library print
 the full stack trace for the `Throwable` corresponding to every test
 failure.
 
-If worse comes to worse and you need to debug a copy of this library
-alongside a grader, the following steps might work depending on local
-weather patterns and what you ate in the last 36 hours:
+If worst comes to worst, you can clone this repository locally and build
+it alongside a grader. The following steps are an example workflow:
 
- 1. Clone this repository inside the directory with your autograder
+ 1. Clone this repository locally
  2. In the autograder directory itself:
-    1. Add the following two lines to `settings.gradle`:
+    1. Modify `settings.gradle` to register the local clone:
        ```
        include ":circuitsim-tester"
        project(":circuitsim-tester").projectDir = file("circuitsim-tester")
        ```
-    2. Comment out the dependency on
+    2. Remove the dependency on
        `io.zucchini.circuitsim-tester:circuitsim-tester` inside the
-       `dependencies {}` block in `build.gradle`. Add a new line in the
-       `dependencies {}` block: `implementation project(":circuitsim-tester")`.
-       The result might look like this:
+       `dependencies {}` block in `build.gradle`, and add a new dependency on
+       the locally-cloned project. The result might look like this:
        ```
        dependencies {
-           //implementation 'io.zucchini.circuitsim-tester:circuitsim-tester:v2.4.0'
+           // implementation 'io.zucchini.circuitsim-tester:circuitsim-tester:v2.4.0'
            implementation project(":circuitsim-tester")
            implementation group: 'junit', name: 'junit', version: '4.12'
        }
        ```
- 3. In the cloned copy of this repository (`circuitsim-tester`), comment
-    out these two lines related to git version business in `build.gradle`:
+ 3. In the cloned copy of this repository, comment out these two lines related
+    to git version in `build.gradle`:
     ```
-    //id 'com.palantir.git-version' version "0.12.3"
+    // id 'com.palantir.git-version' version "0.12.3"
     ...
-    //version gitVersion()
+    // version gitVersion()
     ```
  4. Run `./gradlew jar` in both the cloned copy of this repository and
-    in the top-level autograder directory, in that order. You'll need to
-    this step any time you change any code in the cloned copy of this
-    repository.
+    in the top-level autograder directory, in that order. If you modify
+    the code in the copy of this repository, you will have to rerun the
+    command to rebuild the jar.
 
 Caveats
 -------
