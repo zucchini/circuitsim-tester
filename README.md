@@ -21,6 +21,7 @@ So I have two goals in this template:
     wrapping the CircuitSim API, and pass these wrappers to test classes
     using dependency injection
 
+
 Getting Started
 ---------------
 
@@ -28,13 +29,16 @@ To make your own CircuitSim tester, take a look at the [sample tester repo](http
 
 If you want, you can always include circuitsim-tester yourself to any project using Gradle, making sure that the version is the one you want:
 
+Note that the CircuitSim.jar in the repo is built against the [CS2110 fork of CircuitSim](https://github.com/gt-cs2110/CircuitSim),
+which is not compatible with files created in "regular" CircuitSim. If you are using "regular" CircuitSim, you probably need to rebuild this library.
+
 `build.gradle`:
 
 ```groovy
 // ...
 
 dependencies {
-    implementation 'io.zucchini.circuitsim-tester:circuitsim-tester:v2.4.2'
+    implementation 'io.zucchini.circuitsim-tester:circuitsim-tester:v2.4.3'
 }
 
 repositories {
