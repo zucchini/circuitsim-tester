@@ -3,9 +3,15 @@ package io.zucchini.circuitsimtester.api;
 import java.io.InputStream;
 import java.util.Scanner;
 
+/**
+ * Base class inherited by {@link Ram} and {@link Rom}. Handles loading {@code
+ * .dat}s exported from CircuitSim from an {@link InputStream}.
+ */
 public abstract class BaseMemory {
     public abstract void store(int address, int value);
 
+    // TODO: Provide some mechanism in CircuitSimExtension to open a file
+    //       and preload it into RAM/ROM
     /**
      * Loads a stream of a dat file into this component's memory. Format
      * is the same as the .dat files saved in the CircuitSim memory

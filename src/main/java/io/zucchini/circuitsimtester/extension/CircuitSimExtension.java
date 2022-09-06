@@ -35,6 +35,7 @@ import static io.zucchini.circuitsimtester.api.Subcircuit.MemoryType.RAM;
 import static io.zucchini.circuitsimtester.api.Subcircuit.MemoryType.ROM;
 import static io.zucchini.circuitsimtester.api.Subcircuit.PulserType.BUTTON;
 import static io.zucchini.circuitsimtester.api.Subcircuit.PulserType.CLOCK;
+import static io.zucchini.circuitsimtester.api.SubcircuitComponent.Type.INFER;
 import static io.zucchini.circuitsimtester.api.SubcircuitComponent.Type.TUNNEL;
 
 /**
@@ -144,8 +145,17 @@ public class CircuitSimExtension implements Extension, BeforeAllCallback, Before
                 " is an Input/Output Pins, so @SubcircuitComponent needs a positive bits parameter");
         }
 
+        boolean wantInputPin = InputPin.class.equals(field.getType());
+
         BasePin pinWrapper;
         if (pinAnnotation.type() == TUNNEL) {
+            if (wantInputPin) {
+                throw new IllegalArgumentException(
+                    field.getName() + " is a tunnel but it's an InputPin. " +
+                    "Sorry, but that's not supported, and it sounds like a " +
+                    "highway straight to short circuit city. Did you mean to " +
+                    "write OutputPin?");
+            }
             if (pinAnnotation.onlyInstance()) {
                 throw new IllegalArgumentException(
                     field.getName() + " is a tunnel, please don't specify " +
@@ -159,8 +169,7 @@ public class CircuitSimExtension implements Extension, BeforeAllCallback, Before
 
             String label = pinAnnotation.label().isEmpty()? field.getName() : pinAnnotation.label();
             pinWrapper = subcircuit.snitchTunnel(label, pinAnnotation.bits());
-        } else { // INFER
-            boolean wantInputPin = InputPin.class.equals(field.getType());
+        } else { // pinAnnotation.type() == INFER
             String pinLabel = pinAnnotation.onlyInstance()? null :
                               pinAnnotation.label().isEmpty()? field.getName() : pinAnnotation.label();
             pinWrapper = subcircuit.lookupPin(pinLabel, wantInputPin, pinAnnotation.bits(), pinAnnotation.recursiveSearch());
@@ -172,9 +181,13 @@ public class CircuitSimExtension implements Extension, BeforeAllCallback, Before
     private FieldInjection generateRegFieldInjection(Field field) {
         SubcircuitComponent regAnnotation = field.getDeclaredAnnotation(SubcircuitComponent.class);
 
+        if (regAnnotation.type() != INFER) {
+            throw new IllegalArgumentException(field.getName() +
+                    " is a Register, so @SubcircuitComponent should not have the type parameter");
+        }
         if (regAnnotation.bits() <= 0) {
             throw new IllegalArgumentException(field.getName() +
-                    " is an Register, so @SubcircuitComponent needs a positive bits parameter");
+                    " is a Register, so @SubcircuitComponent needs a positive bits parameter");
         }
 
         String regLabel = regAnnotation.onlyInstance()? null :
@@ -194,6 +207,10 @@ public class CircuitSimExtension implements Extension, BeforeAllCallback, Before
     private FieldInjection generateMemoryFieldInjection(Field field) {
         SubcircuitComponent componentAnnotation = field.getDeclaredAnnotation(SubcircuitComponent.class);
 
+        if (componentAnnotation.type() != INFER) {
+            throw new IllegalArgumentException(field.getName() +
+                    " is a RAM/ROM, so @SubcircuitComponent should not have the type parameter");
+        }
         if (componentAnnotation.bits() <= 0) {
             throw new IllegalArgumentException(field.getName() +
                     " is RAM/ROM, so @SubcircuitComponent needs a positive bits parameter");
@@ -210,6 +227,10 @@ public class CircuitSimExtension implements Extension, BeforeAllCallback, Before
     private FieldInjection generatePulserFieldInjection(Field field) {
         SubcircuitComponent componentAnnotation = field.getDeclaredAnnotation(SubcircuitComponent.class);
 
+        if (componentAnnotation.type() != INFER) {
+            throw new IllegalArgumentException(field.getName() +
+                    " is a Clock/Button, so @SubcircuitComponent should not have the type parameter");
+        }
         if (componentAnnotation.bits() >= 0) {
             throw new IllegalArgumentException(field.getName() +
                     " is a Clock/Button, so @SubcircuitComponent does not need a bits parameter");
@@ -218,7 +239,7 @@ public class CircuitSimExtension implements Extension, BeforeAllCallback, Before
         String label = componentAnnotation.onlyInstance()? null :
                        componentAnnotation.label().isEmpty()? field.getName() : componentAnnotation.label();
         Subcircuit.PulserType type = field.getType().equals(Button.class)? BUTTON : CLOCK;
-        MockPulser mock = subcircuit.mockPulser(label,  componentAnnotation.bits(),  componentAnnotation.recursiveSearch(), type);
+        MockPulser mock = subcircuit.mockPulser(label, componentAnnotation.recursiveSearch(), type);
         return new FieldInjection(field, mock);
     }
 
