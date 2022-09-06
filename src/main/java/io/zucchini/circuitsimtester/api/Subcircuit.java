@@ -32,19 +32,19 @@ import com.ra4king.circuitsim.simulator.components.wiring.Pin;
 import com.ra4king.circuitsim.simulator.Port;
 import com.ra4king.circuitsim.simulator.Simulator;
 
-// Imported for Javadoc(?)
-import io.zucchini.circuitsimtester.extension.CircuitSimExtension;
-
 /**
  * Represents and wraps the subcircuit to test.
  * <p>
- * Holds a CircuitSim {@code CircuitBoard} (also known as a
- * "subcircuit") and the {@code CircuitSim} instance used to simulate
- * it. Your tests shouldn't need to touch this, since it mainly provides
+ * Holds a CircuitSim {@code CircuitBoard} (also known as a "subcircuit") and
+ * the {@code CircuitSim} instance used to simulate it.
+ * <p>
+ * Your tests shouldn't need to touch this, since it mainly provides
  * methods for loading a subcircuit from a file and poking at its
  * internal state to find components to test — all things {@link
- * CircuitSimExtension} handles
- * for you.
+ * io.zucchini.circuitsimtester.extension.CircuitSimExtension} handles
+ * for you. Nevertheless, these APIs are public and documented for fun
+ * and for the benefit of those hacking on the CircuitSim tester. Just beware
+ * that they may not be stable APIs.
  */
 public class Subcircuit {
     private String name;
@@ -262,19 +262,6 @@ public class Subcircuit {
                         Map.Entry::getKey, entry -> entry.getValue().size()));
     }
 
-    // TODO: delete me????
-    private Map<String, Set<Component>> lookupComponents(
-            Collection<String> componentNames,
-            boolean inverse,
-            boolean recursive) {
-        return lookupComponentPeers(componentNames, inverse, recursive)
-               .entrySet().stream().collect(Collectors.toMap(
-                   Map.Entry::getKey,
-                   entry -> entry.getValue().stream().map(ComponentPeer::getComponent)
-                                 .collect(Collectors.toSet())));
-    }
-
-
     private Map<String, Set<ComponentPeer<?>>> lookupComponentPeers(
             Collection<String> componentNames,
             boolean inverse,
@@ -314,8 +301,6 @@ public class Subcircuit {
         return matchingComponents;
     }
 
-    // TODO FIXME update docs
-    // pinLabel == null means only pin
     /**
      * Finds a Pin component labelled {@code pinLabel} in this
      * subcircuit and returns a wrapper around it.
@@ -329,7 +314,8 @@ public class Subcircuit {
      * normalized as described for {@link #lookupSubcircuit(CircuitSim,String)}
      * before lookup.
      *
-     * @param  pinLabel     the label of the pin
+     * @param  pinLabel     the label of the pin, or {@code null} to say this
+     *                      should be the only pin
      * @param  wantInputPin whether the pin found should be input or output
      * @param  wantBits     how many bits the pin found should have
      * @param  recursive    whether or not to recursively search subcircuits
@@ -375,8 +361,28 @@ public class Subcircuit {
         return pinWrapper;
     }
 
-    // FIXME TODO document me
-    // regLabel == null means only register
+    /**
+     * Finds a Register component labelled {@code regLabel} in this
+     * subcircuit and returns a wrapper around it.
+     * <p>
+     * To make sure the tester is deterministic, this method requires the
+     * subcircuit contain exactly one register with a matching label, or if
+     * {@code regLabel} is null, only 1 register period.
+     * <p>
+     * Also for the sake of students' stress levels, {@code regLabel} is
+     * normalized as described for {@link #lookupSubcircuit(CircuitSim,String)}
+     * before lookup.
+     *
+     * @param  regLabel     the label of the register, or {@code null} to say this
+     *                      should be the only register
+     * @param  wantBits     how many bits the register found should have
+     * @param  recursive    whether or not to recursively search subcircuits
+     * @return a {@link Register} wrapping the internal CircuitSim register
+     *         component
+     * @throws IllegalArgumentException if the subcircuit does not
+     *                                  contain exactly one matching register
+     * @see Register
+     */
     public Register lookupRegister(String regLabel, int wantBits, boolean recursive) {
         Pair<SubcircuitState, RegisterPeer> match =
                 lookupComponent(regLabel, wantBits, recursive, RegisterPeer.class);
@@ -388,11 +394,40 @@ public class Subcircuit {
         return new Register(matchingRegister, subcircuit);
     }
 
+    /**
+     * Please see {@link Subcircuit#lookupMemory(String,int,boolean,MemoryType)}
+     * for details on this enum.
+     */
     public enum MemoryType {
         ROM,
         RAM
     }
 
+    /**
+     * Finds a RAM/ROM component labelled {@code label} in this
+     * subcircuit and returns a wrapper around it.
+     * <p>
+     * To make sure the tester is deterministic, this method requires
+     * the subcircuit contain exactly one pin with a matching label.
+     * The algorithm checks this before verifying if a match has the
+     * right bit size or direction (input/output).
+     * <p>
+     * Also for the sake of students' stress levels, {@code pinLabel} is
+     * normalized as described for {@link #lookupSubcircuit(CircuitSim,String)}
+     * before lookup.
+     *
+     * @param  label        the label of the RAM/ROM, or {@code null} to say this
+     *                      should be the only RAM (or only ROM)
+     * @param  wantBits     how many bits the RAM/ROM found should have
+     * @param  recursive    whether or not to recursively search subcircuits
+     * @param  type         whether to look for a {@link MemoryType#RAM} or
+     *                      {@link MemoryType#ROM}
+     * @return either an {@link Ram} or {@link Rom} depending on {@code type}
+     * @throws IllegalArgumentException if the subcircuit does not
+     *                                  contain exactly one matching RAM/ROM
+     * @see Ram
+     * @see Rom
+     */
     public BaseMemory lookupMemory(String label, int wantBits, boolean recursive, MemoryType type) {
         switch (type) {
             case ROM:
@@ -409,7 +444,27 @@ public class Subcircuit {
     }
 
     // TODO: support recursive
+    /**
+     * Add an {@link OutputPin} that spys on the value of the specified tunnel.
+     * <p>
+     * Sadly, a recursive search is not currently supported, but it could be
+     * added within the next 10-15 years — watch this space!
+     * <p>
+     * For the sake of students' stress levels, {@code pinLabel} is
+     * normalized as described for {@link #lookupSubcircuit(CircuitSim,String)}
+     * before lookup.
+     *
+     * @param  label        the label of the tunnel. Must not be {@code null}
+     * @param  wantBits     how many bits the tunnel found should have
+     * @throws IllegalArgumentException if {@code label} is null
+     * @return an {@link OutputPin} wrapping an Pin component attached to the
+     *         specified tunnel
+     */
     public OutputPin snitchTunnel(String label, int wantBits) {
+        if (label == null) {
+            throw new IllegalArgumentException("tunnel label cannot be null");
+        }
+
         String canonicalLabel = canonicalName(label);
         // Hack used because variables referenced in Lambdas must be
         // effectively final: https://stackoverflow.com/a/32523185/321301
@@ -492,9 +547,8 @@ public class Subcircuit {
         return matchingPair;
     }
 
-    // TODO FIXME update docs
     /**
-     * Mocks the only register in this subcircuit by replacing it with
+     * Mocks a CircuitSim register in this subcircuit by replacing it with
      * input and output pins. Useful for testing the combinational logic
      * in a sequential circuit with exactly one register. For more
      * details on the motivation behind {@link MockRegister}s, see
@@ -504,44 +558,15 @@ public class Subcircuit {
      * replaced with a new Pin component reconnected to everything like
      * before.
      * <p>
-     * Will blow up if this subcircuit does not contain exactly one
-     * Register component. Often, this is what you want for state
-     * machine subcircuits for example, and it does not require students
-     * to label the register some arbitrary name buried deep in the
-     * assignment PDF.
+     * Normally this will be called by {@link Register#mock()} and you won't
+     * need to call it directly.
      *
-     * @param  wantBits the bitsize of the register
+     * @param reg A CircuitSim register component to mock out
      * @return a {@code MockRegister} which effectively acts a
      *         collection of input and output pins
      * @see    MockRegister
      */
-    MockRegister mockRegister(com.ra4king.circuitsim.simulator.components.memory.Register reg) {
-        //List<Register> registers = getCircuitBoard().getComponents().stream()
-        //    .filter(component -> component instanceof RegisterPeer)
-        //    .map(component -> ((RegisterPeer) component).getComponent())
-        //    .collect(Collectors.toList());
-
-        //if (registers.size() > 1) {
-        //    throw new IllegalArgumentException(String.format(
-        //        "Subcircuit `%s' contains %d registers, expected 1",
-        //        getCircuitBoard().getCircuit().getName(), registers.size()));
-        //} else if (registers.isEmpty()) {
-        //    throw new IllegalArgumentException(String.format(
-        //        "Subcircuit `%s' contains no registers!",
-        //        getCircuitBoard().getCircuit().getName()));
-        //}
-
-        //Register reg = registers.get(0);
-
-        //int actualBits = reg.getBitSize();
-        //if (actualBits != wantBits) {
-        //    throw new IllegalArgumentException(String.format(
-        //        "Subcircuit `%s' has register with %d bits, but expected %d bits",
-        //        getCircuitBoard().getCircuit().getName(), actualBits, wantBits));
-        //}
-
-        //com.ra4king.circuitsim.simulator.components.memory.Register reg = regWrapper.getRegister();
-
+    public MockRegister mockRegister(com.ra4king.circuitsim.simulator.components.memory.Register reg) {
         InputPin q = new InputPin(substitutePin(reg.getPort(PORT_OUT), true), this);
         OutputPin d = new OutputPin(substitutePin(reg.getPort(PORT_IN), false), this);
         OutputPin en = new OutputPin(substitutePin(reg.getPort(PORT_ENABLE), false), this);
@@ -551,24 +576,53 @@ public class Subcircuit {
         return new MockRegister(q, d, en, clk, rst, this);
     }
 
+    /**
+     * Please see {@link Subcircuit#mockPulser(String,boolean,PulserType)}
+     * for details on this enum.
+     */
     public enum PulserType {
         CLOCK,
         BUTTON
     }
 
-    public MockPulser mockPulser(String label, int wantBits, boolean recursive, PulserType type) {
+    /**
+     * Mocks a CircuitSim Button or Clock component (i.e., a "pulser") in this
+     * subcircuit by replacing it with an input pin. Useful for manipulating
+     * the clock when grading combination circuits.
+     * For more details, see {@link MockPulser}.
+     * <p>
+     * The button/clock will be disconnected from anything else and replaced
+     * with a new input Pin component reconnected to everything like before.
+     * You can call {@link MockPulser#pulse()} to send a pulse (note {@link
+     * Button} and {@link Clock} have their own methods that call {@link
+     * MockPulser#pulse()}).
+     *
+     * @param label the label of the button/clock, or {@code null} if this
+     *               should be the only button or only clock in the circuit
+     * @param recursive whether or not to recursively search subcircuits
+     * @param type whether to look for a clock or button
+     * @return a {@code Button} or {@code Clock} (depending on {@code type})
+     *         wrapping an InputPin which allows you to send pulses into the
+     *         student's circuit
+     * @see MockPulser
+     * @see Button
+     * @see Clock
+     */
+    public MockPulser mockPulser(String label, boolean recursive, PulserType type) {
         SubcircuitState matchingState;
         ComponentPeer<?> matchingComponent;
 
         switch (type) {
             case CLOCK:
-                Pair<SubcircuitState, ClockPeer> clockMatch = lookupComponent(label, wantBits, recursive, ClockPeer.class);
+                // Pass -1 for wantBits because Clocks have no BITSIZE property
+                Pair<SubcircuitState, ClockPeer> clockMatch = lookupComponent(label, -1, recursive, ClockPeer.class);
                 matchingState = clockMatch.getKey();
                 matchingComponent = clockMatch.getValue();
                 break;
             case BUTTON:
+                // Pass -1 for wantBits because Clocks have no BITSIZE property
                 Pair<SubcircuitState, com.ra4king.circuitsim.gui.peers.io.Button> buttonMatch =
-                    lookupComponent(label, wantBits, recursive, com.ra4king.circuitsim.gui.peers.io.Button.class);
+                    lookupComponent(label, -1, recursive, com.ra4king.circuitsim.gui.peers.io.Button.class);
                 matchingState = buttonMatch.getKey();
                 matchingComponent = buttonMatch.getValue();
                 break;

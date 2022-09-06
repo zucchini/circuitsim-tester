@@ -29,7 +29,6 @@ public @interface SubcircuitTest {
      */
     String subcircuit();
 
-
     /**
      * Validate the subcircuit with these {@link Restrictor}s before
      * running any tests. Useful for checking for banned gates.
