@@ -64,6 +64,21 @@ public class CircuitSimExtension implements Extension, BeforeAllCallback, Before
         subcircuit = Subcircuit.fromPath(subcircuitAnnotation.file(),
                                          subcircuitAnnotation.subcircuit());
 
+        if (subcircuitAnnotation.verifyInputPinCount()) {
+            long desiredInputPinCount = Arrays.stream(testClass.getDeclaredFields())
+                                              .filter(field -> field.isAnnotationPresent(SubcircuitComponent.class))
+                                              .filter(field -> field.getType() == InputPin.class)
+                                              .count();
+            long actualInputPinCount = subcircuit.lookupComponentCounts(
+                Arrays.asList("Input Pin"), false, false).getOrDefault("Input Pin", 0);
+            if (desiredInputPinCount != actualInputPinCount) {
+                throw new AssertionError(String.format(
+                    "Expected %d input pins in subcircuit %s, but found %d. " +
+                    "Make sure you didn't use an input pin in place of a constant pin.",
+                    desiredInputPinCount, subcircuit.getName(), actualInputPinCount));
+            }
+        }
+
         for (Class<? extends Restrictor> restrictor : subcircuitAnnotation.restrictors()) {
             runRestrictor(subcircuit, restrictor);
         }

@@ -75,4 +75,17 @@ public @interface SubcircuitTest {
      * @see Subcircuit#resetSimulation()
      */
     boolean resetSimulationBetween() default false;
+
+    /**
+     * Verify that the test contains a fixed number of input pins. This fixed
+     * number is determined by the number of InputPin variables with an
+     * {@link SubcircuitComponent} annotation.
+     * <p>
+     * Defaults to true as students frequently use input pins in place of
+     * constant pins, leading to undesired behavior.
+     *
+     * @return true if the number of input pins should be verified
+     *         false if it should not
+     */
+    boolean verifyInputPinCount() default true;
 }
