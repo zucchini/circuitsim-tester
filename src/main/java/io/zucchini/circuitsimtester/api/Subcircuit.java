@@ -13,7 +13,9 @@ import java.util.stream.Collectors;
 
 import javafx.scene.canvas.Canvas;
 import com.ra4king.circuitsim.gui.*;
+import com.ra4king.circuitsim.gui.ComponentManager.ComponentLauncherInfo;
 import com.ra4king.circuitsim.gui.Properties;
+import com.ra4king.circuitsim.gui.Properties.Property;
 import com.ra4king.circuitsim.gui.peers.memory.RAMPeer;
 import com.ra4king.circuitsim.gui.peers.memory.ROMPeer;
 import com.ra4king.circuitsim.gui.peers.wiring.ClockPeer;
@@ -300,7 +302,7 @@ public class Subcircuit {
         // Run a depth-first search through the simulation DAG starting
         // at this subcircuit. (Setting revisit=false makes this a DFS)
         walk(recursive, false, (circuitBoard, component) -> {
-            Pair<String, String> name = componentNameInfo.getPeerCategoryAndName(component.getClass());
+            Pair<String, String> name = componentNameInfo.getPeerCategoryAndName(component);
             boolean match = goalCategories.contains(name.getKey()) ||
                             goalComponents.contains(name.getValue());
 
@@ -351,22 +353,12 @@ public class Subcircuit {
         }
 
         Pair<SubcircuitState, PinPeer> match = lookupComponent(
-            pinLabel, wantBits, recursive, PinPeer.class);
+            pinLabel, wantBits, recursive, "Wiring", wantInputPin? "Input Pin" : "Output Pin");
         SubcircuitState matchingState = match.getKey();
         PinPeer matchingPin = match.getValue();
 
         // Use their labels for error messages to be less confusing
         String theirPinLabel = matchingPin.getProperties().getValue(Properties.LABEL);
-
-        if (matchingPin.isInput() != wantInputPin) {
-            throw new IllegalArgumentException(String.format(
-                "Subcircuit `%s' has %s pin labelled `%s', but expected it to be an %s pin instead",
-                matchingState.circuitManager.getCircuitBoard().getCircuit().getName(),
-                matchingPin.isInput()? "input" : "output",
-                theirPinLabel,
-                wantInputPin? "input" : "output"));
-        }
-
         Subcircuit subcircuit = withSubcircuitState(matchingState);
         BasePin pinWrapper = wantInputPin? new InputPin(matchingPin.getComponent(),
                                                         subcircuit)
@@ -379,7 +371,7 @@ public class Subcircuit {
     // regLabel == null means only register
     public Register lookupRegister(String regLabel, int wantBits, boolean recursive) {
         Pair<SubcircuitState, RegisterPeer> match =
-                lookupComponent(regLabel, wantBits, recursive, RegisterPeer.class);
+                lookupComponent(regLabel, wantBits, recursive, "Memory", "Register");
         SubcircuitState matchingState = match.getKey();
         com.ra4king.circuitsim.simulator.components.memory.Register matchingRegister =
                 match.getValue().getComponent();
@@ -397,11 +389,11 @@ public class Subcircuit {
         switch (type) {
             case ROM:
                 Pair<SubcircuitState, ROMPeer> romMatch =
-                    lookupComponent(label, wantBits, recursive, ROMPeer.class);
+                    lookupComponent(label, wantBits, recursive, "Memory", "ROM");
                 return new Rom(romMatch.getValue().getComponent(), withSubcircuitState(romMatch.getKey()));
             case RAM:
                 Pair<SubcircuitState, RAMPeer> ramMatch =
-                    lookupComponent(label, wantBits, recursive, RAMPeer.class);
+                    lookupComponent(label, wantBits, recursive, "Memory", "RAM");
                 return new Ram(ramMatch.getValue().getComponent(), withSubcircuitState(ramMatch.getKey()));
             default:
                 throw new IllegalArgumentException("unknown memory type " + type.name());
@@ -441,20 +433,21 @@ public class Subcircuit {
     }
 
     // label == null means look for the only component
+    // TODO: Figure out how to make the type checker happy
+    @SuppressWarnings("unchecked")
     private <T extends ComponentPeer<?>> Pair<SubcircuitState, T> lookupComponent(
-            String label, int wantBits, boolean recursive, Class<T> peerClass) {
-
-        String componentName = componentNameInfo.getPeerCategoryAndName(peerClass).getValue();
+            String label, int wantBits, boolean recursive, String componentCategory, String componentName) {
+        ComponentHandle handle = componentNameInfo.getComponentByCategoryAndName(componentCategory, componentName);
         String canonicalLabel = (label == null)? null : canonicalName(label);
 
         List<Pair<SubcircuitState, T>> matches = new LinkedList<>();
         // If we're doing recursive, we need to revisit to make sure we
         // find duplicates
         walk(recursive, true, (state, componentPeer) -> {
-            if (peerClass.isInstance(componentPeer) &&
+            if (handle.matches(componentPeer) &&
                     (label == null || canonicalLabel.equals(canonicalName(componentPeer.getProperties()
                                                                                        .getValue(Properties.LABEL))))) {
-                matches.add(new Pair<>(state, peerClass.cast(componentPeer)));
+                matches.add(new Pair<>(state, (T)componentPeer));
             }
         });
 
@@ -562,13 +555,13 @@ public class Subcircuit {
 
         switch (type) {
             case CLOCK:
-                Pair<SubcircuitState, ClockPeer> clockMatch = lookupComponent(label, wantBits, recursive, ClockPeer.class);
+                Pair<SubcircuitState, ClockPeer> clockMatch = lookupComponent(label, wantBits, recursive, "Wiring", "Clock");
                 matchingState = clockMatch.getKey();
                 matchingComponent = clockMatch.getValue();
                 break;
             case BUTTON:
                 Pair<SubcircuitState, com.ra4king.circuitsim.gui.peers.io.Button> buttonMatch =
-                    lookupComponent(label, wantBits, recursive, com.ra4king.circuitsim.gui.peers.io.Button.class);
+                    lookupComponent(label, wantBits, recursive, "Input/Output", "Button");
                 matchingState = buttonMatch.getKey();
                 matchingComponent = buttonMatch.getValue();
                 break;
@@ -674,46 +667,214 @@ public class Subcircuit {
             if (o == null || getClass() != o.getClass()) return false;
             SubcircuitState that = (SubcircuitState) o;
             return Objects.equals(circuitManager, that.circuitManager) &&
-                    Objects.equals(circuitState, that.circuitState);
+                   Objects.equals(circuitState, that.circuitState);
+        }
+    }
+
+    /**
+     * Necessary because a subclass of ComponentPeer is not enough to uniquely
+     * identify a "component" (from the user's/student's perspective) in
+     * CircuitSim. Currently, input pins and output pins are both instances of
+     * PinPeer, but with their IS_INPUT Property set to true and false,
+     * respectively. This means we need some tuple (peer class, d) to describe a
+     * component, where d is some discriminator derived from the component
+     * properties. Instead of hardcoding the discriminator here in the
+     * autograder (since Roi might add more cases of this later besides just
+     * input/output pins), we can determine the discriminator property at
+     * startup based on the property that differs between
+     * ComponentLauncherInfos with the same clazz. Then, based on the name of
+     * this discriminator property, we can yank that property out of
+     * ComponentPeers we see in the wild. Easy!
+     */
+    private static class ComponentHandle {
+        private final Class<? extends ComponentPeer<?>> clazz;
+        private final Property<?> discriminator;
+
+        /**
+         * We needed a discriminator for this class and it's supplied here
+         */
+        ComponentHandle(Class<? extends ComponentPeer<?>> clazz, Property<?> discriminator) {
+            this.clazz = clazz;
+            this.discriminator = discriminator;
+        }
+
+        /**
+         * No discriminator needed (class is unambiguous)
+         */
+        ComponentHandle(Class<? extends ComponentPeer<?>> clazz) {
+            this(clazz, null);
+        }
+
+        public boolean matches(Class<? extends ComponentPeer<?>> clazz, Properties properties) {
+            return Objects.equals(this.clazz, clazz)
+                   && (discriminator == null ||
+                       discriminator.equals(properties.getProperty(discriminator.name)));
+        }
+
+        // TODO: Figure out how to make the type checker happy
+        @SuppressWarnings("unchecked")
+        public <T extends ComponentPeer<?>> boolean matches(T peer) {
+            return matches((Class<? extends ComponentPeer<?>>)peer.getClass(), peer.getProperties());
+        }
+
+        @Override
+        public String toString() {
+            return "<Component " + clazz.getCanonicalName() + ">";
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || !(o instanceof ComponentHandle)) return false;
+            ComponentHandle that = (ComponentHandle) o;
+            return Objects.equals(clazz, that.clazz) &&
+                   Objects.equals(discriminator, that.discriminator);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(clazz, discriminator);
         }
     }
 
     private static class ComponentNameInfo {
         private Set<String> categoryNamesKnown;
         private Set<String> componentNamesKnown;
-        private Map<Class<? extends ComponentPeer<?>>,
-                Pair<String, String>> componentClassNames;
+        private Map<Class<? extends ComponentPeer<?>>, List<ComponentHandle>> handlesByClass;
+        private Map<ComponentHandle, Pair<String, String>> componentClassNames;
+        private Map<Pair<String, String>, ComponentHandle> componentsByName;
 
         private ComponentNameInfo(Set<String> categoryNamesKnown,
                                   Set<String> componentNamesKnown,
-                                  Map<Class<? extends ComponentPeer<?>>, Pair<String, String>> componentClassNames) {
+                                  Map<Class<? extends ComponentPeer<?>>, List<ComponentHandle>> handlesByClass,
+                                  Map<ComponentHandle, Pair<String, String>> componentClassNames,
+                                  Map<Pair<String, String>, ComponentHandle> componentsByName) {
             this.categoryNamesKnown = categoryNamesKnown;
             this.componentNamesKnown = componentNamesKnown;
+            this.handlesByClass = handlesByClass;
             this.componentClassNames = componentClassNames;
+            this.componentsByName = componentsByName;
+        }
+
+        private static ComponentHandle findHandle(
+                Map<Class<? extends ComponentPeer<?>>, List<ComponentHandle>> handlesByClass,
+                Class<? extends ComponentPeer<?>> clazz,
+                Properties properties) {
+            return Optional.ofNullable(handlesByClass.get(clazz))
+                           .flatMap(candidates ->
+                               candidates.stream()
+                                         .filter(handle -> handle.matches(clazz, properties))
+                                         // Trick to return Optional.empty() if there are multiple matches
+                                         .collect(Collectors.reducing((__, ___) -> null)))
+                           .orElseThrow(() ->
+                               new IllegalStateException("Number of handle matches for class " +
+                                                         clazz.getCanonicalName() + " is not 1!"));
         }
 
         // Find the names of CircuitSim components and component categories
         public static ComponentNameInfo fromCircuitSim(CircuitSim circuitSim) {
-            Set<String> categoryNamesKnown = new HashSet<>();
-            Set<String> componentNamesKnown = new HashSet<>();
-            Map<Class<? extends ComponentPeer<?>>,
-                    Pair<String, String>> componentClassNames = new HashMap<>();
+            // Roi is a confirmed alpha male and does not allow direct access
+            // to ComponentManager.components, so we have to do this
+            List<ComponentLauncherInfo> componentLauncherInfos = new ArrayList<>();
+            circuitSim.getComponentManager().forEach(componentLauncherInfos::add);
 
-            circuitSim.getComponentManager().forEach((ComponentManager.ComponentLauncherInfo info) -> {
-                categoryNamesKnown.add(info.name.getKey());
-                componentNamesKnown.add(info.name.getValue());
-                componentClassNames.put(info.clazz, info.name);
-            });
+            Set<String> categoryNamesKnown =
+                componentLauncherInfos.stream()
+                                      .map(cli -> cli.name.getKey())
+                                      .collect(Collectors.toSet());
+            Set<String> componentNamesKnown =
+                componentLauncherInfos.stream()
+                                      .map(cli -> cli.name.getValue())
+                                      .collect(Collectors.toSet());
 
-            return new ComponentNameInfo(categoryNamesKnown, componentNamesKnown, componentClassNames);
+            // Now the fun stuff: inferring what ComponentHandles to create
+            // (see the ComponentHandle javadoc above)
+            Map<Class<? extends ComponentPeer<?>>, List<ComponentLauncherInfo>> groupedByClass =
+                componentLauncherInfos.stream()
+                                      .collect(Collectors.groupingBy(cli -> cli.clazz));
+
+            Map<Class<? extends ComponentPeer<?>>, List<ComponentHandle>> handlesByClass =
+                groupedByClass.entrySet()
+                              .stream()
+                              .collect(Collectors.toMap(Map.Entry::getKey, entry -> {
+                                   Class<? extends ComponentPeer<?>> clazz = entry.getKey();
+                                   List<ComponentLauncherInfo> clis = entry.getValue();
+
+                                   if (clis.size() == 1) {
+                                       // No discriminator needed!
+                                       return Collections.singletonList(new ComponentHandle(clazz));
+                                   } else {
+                                       // Sort so this is deterministic
+                                       Set<String> intersection = new TreeSet<String>(clis.get(0).properties.getProperties());
+                                       clis.stream()
+                                           .skip(1)
+                                           .map(cli -> cli.properties.getProperties())
+                                           .forEach(intersection::retainAll);
+
+                                       for (String propName : intersection) {
+                                           long numDistinct = clis.stream()
+                                                                  .map(cli -> cli.properties.getProperty(propName))
+                                                                  .distinct()
+                                                                  .count();
+                                           if (numDistinct < clis.size()) {
+                                               // Whelp, this can't be the discriminator...
+                                               continue;
+                                           } else {
+                                               return clis.stream()
+                                                          .map(cli -> new ComponentHandle(clazz,
+                                                                                          cli.properties.getProperty(propName)))
+                                                          .collect(Collectors.toList());
+                                           }
+                                       }
+
+                                       // If we hit this point, either a bug or Roi has massively trolled us
+                                       throw new IllegalStateException(
+                                           "Class " + clazz.getCanonicalName() + " has multiple " +
+                                           "names but we can't find a Property to discriminate " +
+                                           "between the different names. We are in trouble hoss!");
+                                   }
+                              }));
+
+            // Now let's do a test run to collect component names
+            Map<ComponentHandle, Pair<String, String>> componentClassNames =
+                componentLauncherInfos.stream()
+                                      .collect(Collectors.toMap(
+                                                   cli -> findHandle(handlesByClass, cli.clazz, cli.properties),
+                                                   cli -> cli.name));
+
+            Map<Pair<String, String>, ComponentHandle> componentsByName =
+                componentClassNames.entrySet()
+                                   .stream()
+                                   .collect(Collectors.toMap(Map.Entry::getValue, Map.Entry::getKey));
+
+            return new ComponentNameInfo(
+                categoryNamesKnown,
+                componentNamesKnown,
+                handlesByClass,
+                componentClassNames,
+                componentsByName);
         }
 
-        public Pair<String, String> getPeerCategoryAndName(Class<? extends ComponentPeer> peerClass) {
-            Pair<String, String> name = componentClassNames.get(peerClass);
+        // TODO: Figure out how to make the type checker happy
+        @SuppressWarnings("unchecked")
+        private <T extends ComponentPeer<?>> ComponentHandle findPeerHandle(T peer) {
+            return findHandle(handlesByClass, (Class<? extends ComponentPeer<?>>)peer.getClass(), peer.getProperties());
+        }
+
+        public <T extends ComponentPeer<?>> Pair<String, String> getPeerCategoryAndName(T peer) {
+            Pair<String, String> name = componentClassNames.get(findPeerHandle(peer));
             if (name == null) {
-                throw new IllegalStateException(String.format("Unknown component %s", peerClass));
+                throw new IllegalStateException(String.format("Unknown component %s", peer.getClass().getCanonicalName()));
             }
             return name;
+        }
+
+        public ComponentHandle getComponentByCategoryAndName(String category, String name) {
+            ComponentHandle handle = componentsByName.get(new Pair<>(category, name));
+            if (handle == null) {
+                throw new IllegalStateException(String.format("Unknown component %s/%s", category, name));
+            }
+            return handle;
         }
 
         public Set<String> getCategoryNamesKnown() {

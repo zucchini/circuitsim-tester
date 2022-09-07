@@ -25,12 +25,11 @@ So I have two goals in this template:
 Getting Started
 ---------------
 
+_Note: The `CircuitSim.jar` in the repo is built against the [CS2110 fork of CircuitSim](https://github.com/gt-cs2110/CircuitSim), which is not compatible with files created in "regular" CircuitSim. If you are using vanilla CircuitSim, you probably need to rebuild this library._
+
 To make your own CircuitSim tester, take a look at the [sample tester repo](https://github.com/zucchini/sample-circuitsim-tester).
 
 If you want, you can always include circuitsim-tester yourself to any project using Gradle, making sure that the version is the one you want:
-
-Note that the CircuitSim.jar in the repo is built against the [CS2110 fork of CircuitSim](https://github.com/gt-cs2110/CircuitSim),
-which is not compatible with files created in "regular" CircuitSim. If you are using "regular" CircuitSim, you probably need to rebuild this library.
 
 `build.gradle`:
 
@@ -354,7 +353,7 @@ it alongside a grader. The following steps are an example workflow:
     1. Modify `settings.gradle` to register the local clone:
        ```
        include ":circuitsim-tester"
-       project(":circuitsim-tester").projectDir = file("circuitsim-tester")
+       project(":circuitsim-tester").projectDir = file("path/to/circuitsim-tester")
        ```
     2. Remove the dependency on
        `io.zucchini.circuitsim-tester:circuitsim-tester` inside the
@@ -364,7 +363,6 @@ it alongside a grader. The following steps are an example workflow:
        dependencies {
            // implementation 'io.zucchini.circuitsim-tester:circuitsim-tester:v2.4.0'
            implementation project(":circuitsim-tester")
-           implementation group: 'junit', name: 'junit', version: '4.12'
        }
        ```
  3. In the cloned copy of this repository, comment out these two lines related
