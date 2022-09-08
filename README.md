@@ -37,7 +37,7 @@ If you want, you can always include circuitsim-tester yourself to any project us
 // ...
 
 dependencies {
-    implementation 'io.zucchini.circuitsim-tester:circuitsim-tester:v2.5.0'
+    implementation 'io.zucchini.circuitsim-tester:circuitsim-tester:v2.5.1'
 }
 
 repositories {
