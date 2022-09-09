@@ -19,7 +19,7 @@
 <script type="text/javascript" src="../../../../script-dir/jquery-ui.js"></script>
 </head>
 <body class="class-declaration">
-<script type="text/javascript">var data = {"i0":10,"i1":10,"i2":10};
+<script type="text/javascript">var data = {"i0":10,"i1":10,"i2":10,"i3":10};
 var tabs = {65535:["t0","All Methods"],2:["t2","Instance Methods"],8:["t4","Concrete Methods"]};
 var altColor = "altColor";
 var rowColor = "rowColor";
@@ -163,10 +163,19 @@ extends <a href="BaseMemory.html" title="class in io.zucchini.circuitsimtester.a
 </td>
 </tr>
 <tr class="altColor" id="i2">
+<td class="colFirst"><code>int</code></td>
+<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#load(int)">load</a></span>&#8203;(int&nbsp;address)</code></th>
+<td class="colLast">
+<div class="block">Reads a word from this RAM/ROM.</div>
+</td>
+</tr>
+<tr class="rowColor" id="i3">
 <td class="colFirst"><code>void</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#store(int,int)">store</a></span>&#8203;(int&nbsp;address,
 int&nbsp;value)</code></th>
-<td class="colLast">&nbsp;</td>
+<td class="colLast">
+<div class="block">Writes a word to this RAM/ROM.</div>
+</td>
 </tr>
 </tbody>
 </table>
@@ -221,12 +230,33 @@ int&nbsp;value)</code></th>
 <ul class="blockList">
 <li class="blockList">
 <section class="detail">
+<h3><a id="load(int)">load</a></h3>
+<div class="memberSignature"><span class="modifiers">public</span>&nbsp;<span class="returnType">int</span>&nbsp;<span class="memberName">load</span>&#8203;(<span class="arguments">int&nbsp;address)</span></div>
+<div class="block"><span class="descfrmTypeLabel">Description copied from class:&nbsp;<code><a href="BaseMemory.html#load(int)">BaseMemory</a></code></span></div>
+<div class="block">Reads a word from this RAM/ROM.</div>
+<dl>
+<dt><span class="overrideSpecifyLabel">Specified by:</span></dt>
+<dd><code><a href="BaseMemory.html#load(int)">load</a></code>&nbsp;in class&nbsp;<code><a href="BaseMemory.html" title="class in io.zucchini.circuitsimtester.api">BaseMemory</a></code></dd>
+<dt><span class="paramLabel">Parameters:</span></dt>
+<dd><code>address</code> - The memory address to load from</dd>
+<dt><span class="returnLabel">Returns:</span></dt>
+<dd>value at this address</dd>
+</dl>
+</section>
+</li>
+<li class="blockList">
+<section class="detail">
 <h3><a id="store(int,int)">store</a></h3>
 <div class="memberSignature"><span class="modifiers">public</span>&nbsp;<span class="returnType">void</span>&nbsp;<span class="memberName">store</span>&#8203;(<span class="arguments">int&nbsp;address,
 int&nbsp;value)</span></div>
+<div class="block"><span class="descfrmTypeLabel">Description copied from class:&nbsp;<code><a href="BaseMemory.html#store(int,int)">BaseMemory</a></code></span></div>
+<div class="block">Writes a word to this RAM/ROM.</div>
 <dl>
 <dt><span class="overrideSpecifyLabel">Specified by:</span></dt>
 <dd><code><a href="BaseMemory.html#store(int,int)">store</a></code>&nbsp;in class&nbsp;<code><a href="BaseMemory.html" title="class in io.zucchini.circuitsimtester.api">BaseMemory</a></code></dd>
+<dt><span class="paramLabel">Parameters:</span></dt>
+<dd><code>address</code> - The memory address to store to</dd>
+<dd><code>value</code> - The value to store</dd>
 </dl>
 </section>
 </li>

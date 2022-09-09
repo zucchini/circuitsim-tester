@@ -19,7 +19,7 @@
 <script type="text/javascript" src="../../../../script-dir/jquery-ui.js"></script>
 </head>
 <body class="class-declaration">
-<script type="text/javascript">var data = {"i0":10,"i1":6};
+<script type="text/javascript">var data = {"i0":6,"i1":10,"i2":6};
 var tabs = {65535:["t0","All Methods"],2:["t2","Instance Methods"],4:["t3","Abstract Methods"],8:["t4","Concrete Methods"]};
 var altColor = "altColor";
 var rowColor = "rowColor";
@@ -146,17 +146,26 @@ extends <a href="https://docs.oracle.com/en/java/javase/14/docs/api/java.base/ja
 </thead>
 <tbody>
 <tr class="altColor" id="i0">
+<td class="colFirst"><code>abstract int</code></td>
+<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#load(int)">load</a></span>&#8203;(int&nbsp;address)</code></th>
+<td class="colLast">
+<div class="block">Reads a word from this RAM/ROM.</div>
+</td>
+</tr>
+<tr class="rowColor" id="i1">
 <td class="colFirst"><code>void</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#load(java.io.InputStream)">load</a></span>&#8203;(<a href="https://docs.oracle.com/en/java/javase/14/docs/api/java.base/java/io/InputStream.html?is-external=true" title="class or interface in java.io" class="externalLink">InputStream</a>&nbsp;stream)</code></th>
 <td class="colLast">
 <div class="block">Loads a stream of a dat file into this component's memory.</div>
 </td>
 </tr>
-<tr class="rowColor" id="i1">
+<tr class="altColor" id="i2">
 <td class="colFirst"><code>abstract void</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#store(int,int)">store</a></span>&#8203;(int&nbsp;address,
 int&nbsp;value)</code></th>
-<td class="colLast">&nbsp;</td>
+<td class="colLast">
+<div class="block">Writes a word to this RAM/ROM.</div>
+</td>
 </tr>
 </tbody>
 </table>
@@ -198,9 +207,28 @@ int&nbsp;value)</code></th>
 <ul class="blockList">
 <li class="blockList">
 <section class="detail">
+<h3><a id="load(int)">load</a></h3>
+<div class="memberSignature"><span class="modifiers">public abstract</span>&nbsp;<span class="returnType">int</span>&nbsp;<span class="memberName">load</span>&#8203;(<span class="arguments">int&nbsp;address)</span></div>
+<div class="block">Reads a word from this RAM/ROM.</div>
+<dl>
+<dt><span class="paramLabel">Parameters:</span></dt>
+<dd><code>address</code> - The memory address to load from</dd>
+<dt><span class="returnLabel">Returns:</span></dt>
+<dd>value at this address</dd>
+</dl>
+</section>
+</li>
+<li class="blockList">
+<section class="detail">
 <h3><a id="store(int,int)">store</a></h3>
 <div class="memberSignature"><span class="modifiers">public abstract</span>&nbsp;<span class="returnType">void</span>&nbsp;<span class="memberName">store</span>&#8203;(<span class="arguments">int&nbsp;address,
 int&nbsp;value)</span></div>
+<div class="block">Writes a word to this RAM/ROM.</div>
+<dl>
+<dt><span class="paramLabel">Parameters:</span></dt>
+<dd><code>address</code> - The memory address to store to</dd>
+<dd><code>value</code> - The value to store</dd>
+</dl>
 </section>
 </li>
 <li class="blockList">

@@ -8,8 +8,24 @@ import java.util.Scanner;
  * .dat}s exported from CircuitSim from an {@link InputStream}.
  */
 public abstract class BaseMemory {
+    /**
+     * Reads a word from this RAM/ROM.
+     *
+     * @param address The memory address to load from
+     * @return value at this address
+     */
+    public abstract int load(int address);
+
+    /**
+     * Writes a word to this RAM/ROM.
+     *
+     * @param address The memory address to store to
+     * @param value The value to store
+     */
     public abstract void store(int address, int value);
 
+    // TODO: This method is badly named, so rename it. After all, we are
+    //       storing into RAM/ROM, not loading from it.
     // TODO: Provide some mechanism in CircuitSimExtension to open a file
     //       and preload it into RAM/ROM
     /**
