@@ -24,6 +24,11 @@ public class Ram extends BaseMemory {
     }
 
     @Override
+    public int load(int address) {
+        return ram.load(subcircuit.getCircuitState(), address);
+    }
+
+    @Override
     public void store(int address, int value) {
         ram.store(subcircuit.getCircuitState(), address, value);
     }

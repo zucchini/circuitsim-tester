@@ -24,6 +24,11 @@ public class Rom extends BaseMemory {
     }
 
     @Override
+    public int load(int address) {
+        return rom.getMemory()[address];
+    }
+
+    @Override
     public void store(int address, int value) {
         rom.getMemory()[address] = value;
         subcircuit.getCircuit().forEachState(state -> rom.valueChanged(state, null, 0));
