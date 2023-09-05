@@ -8,6 +8,8 @@ import java.io.PrintStream;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
+import com.ra4king.circuitsim.gui.CircuitSimRunner.NativeLibraryExtractor;
+
 import org.junit.platform.launcher.Launcher;
 import org.junit.platform.launcher.LauncherDiscoveryRequest;
 import org.junit.platform.launcher.core.LauncherFactory;
@@ -33,12 +35,22 @@ public class TesterLauncher {
             return;
         }
 
-        if (student) {
-            System.exit(studentRun(pkg, verbose));
-        } else { // zucchini
-            String testClassName = args[1];
-            System.exit(zucchiniRun(pkg, testClassName));
+        int exitCode;
+        // This extracts the architecture+OS-specific JavaFX native libraries.
+        // CircuitSim does this when starting itself up, but we are bypassing
+        // that, so we need to do it ourselves here too
+        try (NativeLibraryExtractor extractor = new NativeLibraryExtractor()) {
+            extractor.extractNativeLibs();
+
+            if (student) {
+                exitCode = studentRun(pkg, verbose);
+            } else { // zucchini
+                String testClassName = args[1];
+                exitCode = zucchiniRun(pkg, testClassName);
+            }
         }
+
+        System.exit(exitCode);
     }
 
     private static int studentRun(String testPackage, boolean verbose) {
