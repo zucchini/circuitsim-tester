@@ -264,7 +264,7 @@ public class Subcircuit {
                         Map.Entry::getKey, entry -> entry.getValue().size()));
     }
 
-    private Map<String, Set<ComponentPeer<?>>> lookupComponentPeers(
+    private Map<String, List<ComponentPeer<?>>> lookupComponentPeers(
             Collection<String> componentNames,
             boolean inverse,
             boolean recursive) {
@@ -285,10 +285,11 @@ public class Subcircuit {
                 String.join(", ", components)));
         }
 
-        Map<String, Set<ComponentPeer<?>>> matchingComponents = new HashMap<>();
+        Map<String, List<ComponentPeer<?>>> matchingComponents = new HashMap<>();
         // Run a depth-first search through the simulation DAG starting
-        // at this subcircuit. (Setting revisit=false makes this a DFS)
-        walk(recursive, false, (circuitBoard, component) -> {
+        // at this subcircuit. Setting revisit=true ensures we correctly count the
+        // components in multiple occurrences of the same subcircuit
+        walk(recursive, true, (circuitBoard, component) -> {
             Pair<String, String> name = componentNameInfo.getPeerCategoryAndName(component);
             boolean match = goalCategories.contains(name.getKey()) ||
                             goalComponents.contains(name.getValue());
@@ -296,7 +297,7 @@ public class Subcircuit {
             if (match ^ inverse) {
                 matchingComponents.computeIfAbsent(
                     name.getValue(),
-                    k -> new HashSet<>()).add(component);
+                    k -> new ArrayList<>()).add(component);
             }
         });
 

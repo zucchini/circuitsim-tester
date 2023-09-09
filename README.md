@@ -372,6 +372,10 @@ it alongside a grader. The following steps are an example workflow:
     ...
     // version gitVersion()
     ```
+    For autograders (consumers) using newer versions of Gradle, you may also
+    need to comment out the `sourcesJar` and `javadocJar` tasks as well as the
+    `artifacts {}` and `publishing {}` sections. Isn't software "engineering"
+    fun?
  4. Run `./gradlew jar` in both the cloned copy of this repository and
     in the top-level autograder directory, in that order. If you modify
     the code in the copy of this repository, you will have to rerun the
