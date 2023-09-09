@@ -8,6 +8,8 @@ import java.io.PrintStream;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
+import javafx.application.Platform;
+
 import com.ra4king.circuitsim.gui.CircuitSimRunner.NativeLibraryExtractor;
 
 import org.junit.platform.launcher.Launcher;
@@ -48,6 +50,9 @@ public class TesterLauncher {
                 String testClassName = args[1];
                 exitCode = zucchiniRun(pkg, testClassName);
             }
+
+            // Exit JavaFX, hopefully to stop the grader from hanging
+            Platform.exit();
         }
 
         System.exit(exitCode);
