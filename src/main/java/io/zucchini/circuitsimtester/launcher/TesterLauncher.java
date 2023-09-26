@@ -112,6 +112,12 @@ public class TesterLauncher {
                     out.printf("%n[FAIL] Test suite: %s: %s%n",
                                classResult.getId().getDisplayName(),
                                classResult.getResult().getThrowable().get().getMessage());
+
+                    if (verbose) {
+                        err.printf("[verbose] stack trace for failure:\n");
+                        classResult.getResult().getThrowable().get().printStackTrace(err);
+                    }
+
                     continue;
                 }
 
