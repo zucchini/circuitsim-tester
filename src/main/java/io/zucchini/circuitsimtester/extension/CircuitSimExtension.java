@@ -13,8 +13,9 @@ import java.util.stream.Collectors;
 
 import org.junit.jupiter.api.extension.BeforeAllCallback;
 import org.junit.jupiter.api.extension.BeforeEachCallback;
-import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.jupiter.api.extension.Extension;
+import org.junit.jupiter.api.extension.ExtensionContext;
+import org.junit.jupiter.api.TestInstance.Lifecycle;
 
 import io.zucchini.circuitsimtester.api.BaseMemory;
 import io.zucchini.circuitsimtester.api.BasePin;
@@ -84,18 +85,32 @@ public class CircuitSimExtension implements Extension, BeforeAllCallback, Before
         }
 
         fieldInjections = generateFieldInjections(testClass);
+
+        // Conservatively assume PER_METHOD if lifecycle is MIA
+        if (context.getTestInstanceLifecycle().isPresent()
+                && context.getTestInstanceLifecycle().get() == Lifecycle.PER_CLASS) {
+            injectFields(context);
+        }
     }
 
     @Override
-    public void beforeEach(ExtensionContext extensionContext) throws Exception {
+    public void beforeEach(ExtensionContext context) throws Exception {
         // Reset simulator before each test
         if (resetSimulationBetween) {
             subcircuit.resetSimulation();
         }
 
+        // Conservatively assume PER_METHOD if lifecycle is MIA
+        if (!context.getTestInstanceLifecycle().isPresent()
+                || context.getTestInstanceLifecycle().get() == Lifecycle.PER_METHOD) {
+            injectFields(context);
+        }
+    }
+
+    private void injectFields(ExtensionContext context) throws IllegalAccessException {
         // Do simple dependency injection
         for (FieldInjection fieldInjection : fieldInjections) {
-            fieldInjection.inject(extensionContext.getRequiredTestInstance());
+            fieldInjection.inject(context.getRequiredTestInstance());
         }
     }
 
