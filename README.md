@@ -25,7 +25,7 @@ So I have two goals in this template:
 Getting Started
 ---------------
 
-_Note: The `CircuitSim.jar` in the repo is built against the [CS2110 fork of CircuitSim](https://github.com/gt-cs2110/CircuitSim), which is not compatible with files created in "regular" CircuitSim. If you are using vanilla CircuitSim, you probably need to rebuild this library._
+_Note: The `CircuitSim.jar` in the repo is built against the [CE fork of CircuitSim](https://github.com/gt-cs2110/CircuitSim), which is not compatible with files created in "regular" CircuitSim. If you are using vanilla CircuitSim, you probably need to rebuild this library._
 
 To make your own CircuitSim tester, take a look at the [sample tester repo](https://github.com/zucchini/sample-circuitsim-tester).
 

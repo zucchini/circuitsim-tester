@@ -11,6 +11,7 @@ import java.util.*;
 import java.util.function.BiConsumer;
 import java.util.stream.Collectors;
 
+import javafx.geometry.Bounds;
 import javafx.scene.canvas.Canvas;
 import com.ra4king.circuitsim.gui.*;
 import com.ra4king.circuitsim.gui.ComponentManager.ComponentLauncherInfo;
@@ -636,13 +637,10 @@ public class Subcircuit {
         port.unlinkPort(port);
         return link;
     }
-
-    private int getMaxX() {
-        return (int) Math.ceil(state.circuitManager.getCanvas().getWidth() / GuiUtils.BLOCK_SIZE);
-    }
-
-    private int getMaxY() {
-        return (int) Math.ceil(state.circuitManager.getCanvas().getHeight() / GuiUtils.BLOCK_SIZE);
+    
+    private Pair<Integer, Integer> getMaxCoords() {
+        Bounds bounds = state.circuitManager.getCircuitBounds();
+        return new Pair<>((int) bounds.getMaxX(), (int) bounds.getMaxY());
     }
 
     private Pin substitutePin(Port port, boolean isInput) {
@@ -650,10 +648,13 @@ public class Subcircuit {
     }
 
     private Pin addSnitchPinToLink(Port.Link link, boolean isInput) {
+        Pair<Integer, Integer> maxCoords = getMaxCoords();
+        int maxX = maxCoords.getKey();
+        int maxY = maxCoords.getValue();
         PinPeer mockPinPeer = new PinPeer(new Properties(
             new Properties.Property<>(Properties.BITSIZE, link.getBitSize()),
             new Properties.Property<>(PinPeer.IS_INPUT, isInput)
-        ), getMaxX(), getMaxY());
+        ), maxX, maxY);
 
         // Find a valid place to drop it
         do {
