@@ -13,8 +13,8 @@ plugins {
 group = 'io.zucchini.circuitsim-tester'
 version gitVersion()
 
-sourceCompatibility = JavaVersion.VERSION_14
-targetCompatibility = JavaVersion.VERSION_14
+sourceCompatibility = JavaVersion.VERSION_17
+targetCompatibility = JavaVersion.VERSION_17
 
 repositories {
     mavenCentral()
@@ -52,7 +52,7 @@ javadoc {
     // For github pages
     destinationDir = file('docs')
     options.addBooleanOption 'html5', true
-    options.addStringOption  'link', 'https://docs.oracle.com/en/java/javase/14/docs/api/'
+    options.addStringOption  'link', 'https://docs.oracle.com/en/java/javase/17/docs/api/'
 }
 
 task sourcesJar(type: Jar) {
