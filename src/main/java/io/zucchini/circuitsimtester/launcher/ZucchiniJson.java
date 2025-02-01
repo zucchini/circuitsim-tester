@@ -2,9 +2,13 @@ package io.zucchini.circuitsimtester.launcher;
 
 import static org.junit.platform.engine.TestExecutionResult.Status.SUCCESSFUL;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Comparator;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -38,27 +42,24 @@ public class ZucchiniJson {
     // Assumes results is sorted by method name
     private List<ZucchiniJsonMethod> collapseMethodResults(
             Collection<TestMethodResult> results) {
-        List<ZucchiniJsonMethod> collapsed = new LinkedList<>();
+        Map<String, ZucchiniJsonMethod> collapsed = new HashMap<>();
 
         for (TestMethodResult result : results) {
             String methodName = result.getSource().getMethodName();
-            ZucchiniJsonMethod tail;
-            if (collapsed.isEmpty() ||
-                    !(tail = collapsed.get(collapsed.size() - 1)).methodName
-                                                                 .equals(methodName)) {
-                // Time to start a new methodresult
-                collapsed.add(tail = new ZucchiniJsonMethod(methodName));
-            }
+            ZucchiniJsonMethod method = collapsed.computeIfAbsent(methodName, ZucchiniJsonMethod::new);
 
-            tail.total++;
+            method.total++;
             if (result.getResult().getStatus() != SUCCESSFUL &&
-                    ++tail.failed <= maxFailuresPerTest) {
-                tail.partialFailures.add(
+                    ++method.failed <= maxFailuresPerTest) {
+                method.partialFailures.add(
                     ZucchiniJsonMethodFailure.fromMethodResult(result));
             }
         }
 
-        return collapsed;
+        List<ZucchiniJsonMethod> objects = new ArrayList<>(collapsed.values());
+        objects.sort(Comparator.comparing(m -> m.methodName));
+
+        return objects;
     }
 
     private static class ZucchiniJsonRoot {
